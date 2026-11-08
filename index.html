@@ -336,6 +336,34 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
 @keyframes heartBeatBig{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
 .heart-sub{margin-top:14px; font-size:clamp(11.5px,3vw,13px); color:rgba(255,225,240,.75)}
 
+/* ---------- 11 保存卡片 ---------- */
+.heart-acts{display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:6px}
+.save-tip{margin:10px 0 0; font-family:var(--mono); font-size:11px; color:rgba(255,215,235,.6);
+  min-height:1.4em; transition:opacity .3s}
+
+/* ---------- 02 岁数挂牌 ---------- */
+.bd-tag{
+  position:absolute; right:-26px; top:-30px; z-index:3;
+  display:inline-flex; align-items:baseline; gap:2px; padding:8px 12px 9px;
+  background:rgba(12,16,44,.92); border:3px solid var(--pink);
+  box-shadow:5px 5px 0 rgba(0,0,0,.45);
+  transform:rotate(7deg); transform-origin:50% 100%;
+  animation:tagBob 2.4s steps(2,end) infinite;
+}
+.bd-tag b{font-family:var(--px); font-size:26px; line-height:1; color:var(--gold);
+  text-shadow:2px 2px 0 rgba(0,0,0,.5)}
+.bd-tag i{font-family:var(--px); font-size:12px; font-style:normal; color:#fff}
+@keyframes tagBob{
+  0%,100%{transform:rotate(7deg) translateY(0)}
+  50%{transform:rotate(5deg) translateY(-5px)}
+}
+
+/* ---------- 03 第二问 ---------- */
+.quiz2{margin-top:10px}
+.quiz2-q{margin:16px 0 14px; font-size:clamp(14px,3.6vw,16px); color:#3a2340}
+.quiz2 .quiz-btns{gap:8px; flex-wrap:wrap}
+.quiz2 .pbtn{padding:9px 14px; font-size:clamp(12px,3vw,13px)}
+
 /* ---------- 06 关于你 ---------- */
 .about-wrap{position:relative; width:100%; max-width:780px; margin:0 auto}
 .about-wrap::after{
@@ -887,6 +915,7 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
         <span class="bd-deco d3" data-ico="heart"></span>
         <span class="bd-deco d4" data-ico="spark"></span>
         <div id="rabbit2"></div>
+        <span class="bd-tag" aria-hidden="true"><b>21</b><i>岁</i></span>
       </div>
       <p class="note" id="n2"></p>
       <button class="pbtn" data-next type="button">还有惊喜？快给我看看 ↗</button>
@@ -908,6 +937,15 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
         <button class="pbtn ghost" id="no3" type="button">不是 →</button>
       </div>
       <p class="quiz-out" id="out3"></p>
+      <div class="quiz2" id="quiz2" hidden>
+        <p class="quiz2-q" id="q3b">那你说说，我最喜欢你哪里？</p>
+        <div class="quiz-btns">
+          <button class="pbtn ghost" data-a="eye" type="button">眼睛</button>
+          <button class="pbtn ghost" data-a="smile" type="button">笑起来的样子</button>
+          <button class="pbtn ghost" data-a="all" type="button">全部</button>
+        </div>
+        <p class="quiz-out" id="out3b"></p>
+      </div>
       <button class="pbtn small" data-next type="button">继续 →</button>
     </div>
   </section>
@@ -1068,7 +1106,11 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
       <p class="heart-name"><span id="heartName">车洁霞</span></p>
       <p class="heart-big">生日快乐</p>
       <p class="sub heart-sub">这一整屏，都是我的心跳。</p>
-      <button class="pbtn" data-next type="button">最后一页 →</button>
+      <div class="heart-acts">
+        <button class="pbtn small ghost" id="saveCard" type="button">保存这张卡片</button>
+        <button class="pbtn" data-next type="button">最后一下 →</button>
+      </div>
+      <p class="save-tip" id="saveTip"></p>
     </div>
   </section>
 
@@ -1593,10 +1635,14 @@ const Music = {
   },
   stop() { this.on = false; clearInterval(this.timer); },
   resume() { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); },
+  /* B 段：换一套走向，避免 24 秒一轮的单调 */
+  progB: [[5, 9, 12], [9, 12, 16], [4, 7, 11], [7, 11, 14], [0, 4, 7], [6, 9, 13], [5, 9, 12], [7, 11, 14]],
   tick() {
     if (!this.on || !this.ctx || !Sfx.on || REDUCE) return;
     const ctx = this.ctx, now = ctx.currentTime, i = this.step;
-    const chord = this.prog[Math.floor(i / 8) % this.prog.length];
+    const section = Math.floor(i / 64) % 2;            /* 每 64 步换一段 */
+    const prog = section ? this.progB : this.prog;
+    const chord = prog[Math.floor(i / 8) % prog.length];
     const mk = (freq, dur, type, vol) => {
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.type = type; o.frequency.value = freq;
@@ -1610,8 +1656,9 @@ const Music = {
     mk(this.note(chord[this.arp[i % 8]]) * 2, 0.62, 'triangle', 0.020);
     /* 低音：每小节根音 */
     if (i % 8 === 0) mk(this.note(chord[0]) / 2, 1.5, 'sine', 0.030);
-    /* 高音点缀：每两小节一次 */
+    /* 高音点缀：每两小节一次；B 段更密一点，像换了个人在弹 */
     if (i % 16 === 8) mk(this.note(chord[2]) * 4, 0.9, 'sine', 0.008);
+    if (section && i % 8 === 6) mk(this.note(chord[1]) * 4, 0.55, 'triangle', 0.007);
     this.step++;
   }
 };
@@ -1949,10 +1996,32 @@ $('#s9').insertAdjacentElement('afterend', _s9b);
 
 /* ---------- 灵魂拷问 ---------- */
 let dodged = 0;
+function revealQuiz2() {
+  const q = document.getElementById('quiz2');
+  if (q && q.hidden) {
+    q.hidden = false;
+    try { q.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {}
+  }
+}
+$$('#quiz2 [data-a]').forEach((b) => {
+  b.addEventListener('click', () => {
+    const a = b.dataset.a;
+    const out = document.getElementById('out3b');
+    const txt = a === 'all'
+      ? '答对了。真的，一处都没有漏。'
+      : a === 'eye'
+        ? '不对。我最喜欢的是你看我的时候，眼睛里有光。'
+        : '接近了。其实是你一笑，我这边就跟着亮了。';
+    if (out) out.textContent = txt;
+    Sfx.blip(820, .09);
+    if (a === 'all') { burst(innerWidth / 2, innerHeight * .55, 60); Sfx.chime(); }
+  });
+});
+
 $('#yes3').addEventListener('click', () => {
   $('#out3').textContent = CONFIG.ch3.afterYes || '';
   Sfx.blip(880, .1); burst(innerWidth / 2, innerHeight * .62, 40);
-  setTimeout(() => { if (!busy) next(); }, 1100);
+  revealQuiz2();
 });
 $('#no3').addEventListener('click', () => {
   if (dodged < 3) {
@@ -1973,7 +2042,7 @@ $('#no3').addEventListener('click', () => {
   bt.style.opacity = '1';
   $('#out3').textContent = CONFIG.ch3.afterNo || '';
   Sfx.blip(523, .12);
-  setTimeout(next, 900);
+  revealQuiz2();
 });
 
 /* ---------- 吹蜡烛 ---------- */
@@ -2255,7 +2324,7 @@ setTimeout(() => {
       else el.style.right = (1 + Math.random() * 5).toFixed(1) + '%';
       el.style.setProperty('--sway', (Math.random() * 26 - 13).toFixed(0) + 'px');
       el.style.animationDuration = (17 + Math.random() * 11).toFixed(1) + 's';
-      el.style.animationDelay = '-' + (Math.random() * 22).toFixed(1) + 's';
+      el.style.animationDelay = '-' + ((i / LINES.length) * 24 + Math.random() * 1.2).toFixed(1) + 's';
       el.style.opacity = big ? '.34' : '.28';
       box.appendChild(el);
     });
@@ -2274,7 +2343,7 @@ let heartActive = false;
   const hx = (t) => 16 * Math.pow(Math.sin(t), 3);
   const hy = (t) => 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
 
-  const N = LOW_END ? 1500 : 2800;
+  const N = LOW_END ? 1100 : 2000;
   const pts = [];
   for (let i = 0; i < N; i++) {
     const a = Math.random() * Math.PI * 2;
@@ -2288,16 +2357,36 @@ let heartActive = false;
     });
   }
 
-  const cols = ['#ff6ea8', '#ff3d7f', '#ffb0cd', '#ffd84d'];
+  /* 调色板 + 透明度档位：按桶批量绘制，避免逐粒子改状态 */
+  const PALETTE = ['#ff6ea8', '#ff3d7f', '#ffb0cd', '#ffd84d', '#fff3d6'];
+  const ALPHAS = [0.55, 0.8, 1];
+  const BUCKETS = {};
+  PALETTE.forEach((c, ci) => ALPHAS.forEach((a, ai) => { BUCKETS[ci + '-' + ai] = []; }));
+  pts.forEach((p) => {
+    const inner = p.u < 0.40;
+    const ci = inner ? (Math.random() < 0.5 ? 3 : 4) : (Math.random() * 3) | 0;
+    const ai = (Math.random() * ALPHAS.length) | 0;
+    p.ci = ci; p.ai = ai;
+    BUCKETS[ci + '-' + ai].push(p);
+  });
+  let GLOW = null;
+  function buildGlow() {
+    const baseW = Math.min(W * 0.42, H * 0.31);
+    const g = cx.createRadialGradient(W / 2, H * 0.40, baseW * 0.15, W / 2, H * 0.40, baseW * 1.85);
+    g.addColorStop(0, 'rgba(255,120,170,.22)');
+    g.addColorStop(0.5, 'rgba(255,70,140,.10)');
+    g.addColorStop(1, 'rgba(255,60,130,0)');
+    GLOW = g;
+  }
   function size() {
     const v = viewSize();
     W = v.w; H = v.h;
-    const d = Math.min(DPR, 2);
+    const d = Math.min(DPR, 1.5);
     cv.width = Math.round(W * d); cv.height = Math.round(H * d);
     cx.setTransform(d, 0, 0, d, 0, 0);
   }
-  size();
-  addEventListener('resize', size);
+  size(); buildGlow();
+  addEventListener('resize', () => { size(); buildGlow(); });
 
   function loop(ts) {
     raf = requestAnimationFrame(loop);
@@ -2312,25 +2401,25 @@ let heartActive = false;
     const halfH = halfW * 0.96;
     const ox = W / 2, oy = H * 0.40;
 
-    cx.clearRect(0, 0, W, H);
+    /* 只处理心形周围那块，省掉整屏清屏和渐变 */
+    const bx = ox - halfW * 1.5, by = oy - halfH * 1.6;
+    const bw = halfW * 3, bh = halfH * 3.2;
+    cx.clearRect(bx, by, bw, bh);
+    cx.fillStyle = GLOW;
+    cx.fillRect(bx, by, bw, bh);
 
-    /* 外发光 */
-    const g = cx.createRadialGradient(ox, oy, halfW * 0.2, ox, oy, halfW * 1.5);
-    g.addColorStop(0, 'rgba(255,110,168,.20)');
-    g.addColorStop(0.55, 'rgba(255,60,130,.10)');
-    g.addColorStop(1, 'rgba(255,60,130,0)');
-    cx.fillStyle = g;
-    cx.fillRect(0, 0, W, H);
-
-    for (let i = 0; i < pts.length; i++) {
-      const p = pts[i];
-      const wob = Math.sin(t0 * p.sp + p.ph) * (1.5 + p.u * 2.2);
-      const px = ox + (p.x / 16) * halfW + wob;
-      const py = oy - (p.y / 17) * halfH + wob * 0.6;
-      const inner = p.u < 0.40;
-      cx.globalAlpha = Math.max(.35, Math.min(1, 0.78 + Math.sin(t0 * 1.7 + p.ph) * 0.22));
-      cx.fillStyle = inner ? (Math.random() < 0.5 ? '#fff3d6' : '#ffd84d') : cols[(i % 3)];
-      cx.fillRect(px | 0, py | 0, p.s, p.s);
+    for (let ci = 0; ci < PALETTE.length; ci++) {
+      for (let ai = 0; ai < ALPHAS.length; ai++) {
+        const list = BUCKETS[ci + '-' + ai];
+        if (!list.length) continue;
+        cx.fillStyle = PALETTE[ci];
+        cx.globalAlpha = ALPHAS[ai];
+        for (let k = 0; k < list.length; k++) {
+          const p = list[k];
+          const wob = Math.sin(t0 * p.sp + p.ph) * (1.5 + p.u * 2.2);
+          cx.fillRect((ox + (p.x / 16) * halfW + wob) | 0, (oy - (p.y / 17) * halfH + wob * 0.6) | 0, p.s, p.s);
+        }
+      }
     }
     cx.globalAlpha = 1;
   }
@@ -2346,6 +2435,84 @@ let heartActive = false;
     });
   }
 })();
+
+/* ---------- 11 生成一张可保存的卡片 ---------- */
+{
+  const btn = document.getElementById('saveCard');
+  if (btn) {
+    btn.addEventListener('click', async () => {
+      const tip = document.getElementById('saveTip');
+      const setTip = (s) => { if (tip) tip.textContent = s; };
+      try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (e) {}
+
+      const WW = 1080, HH = 1500;
+      const c = document.createElement('canvas');
+      c.width = WW; c.height = HH;
+      const g = c.getContext('2d');
+
+      /* 背景 */
+      const bg = g.createLinearGradient(0, 0, 0, HH);
+      bg.addColorStop(0, '#0b1030');
+      bg.addColorStop(0.55, '#1a1240');
+      bg.addColorStop(1, '#0b1030');
+      g.fillStyle = bg; g.fillRect(0, 0, WW, HH);
+
+      /* 星点 */
+      for (let i = 0; i < 90; i++) {
+        g.globalAlpha = 0.15 + Math.random() * 0.55;
+        g.fillStyle = '#fff';
+        const s = Math.random() < 0.8 ? 2 : 3;
+        g.fillRect(Math.random() * WW, Math.random() * HH * 0.75, s, s);
+      }
+      g.globalAlpha = 1;
+
+      /* 心形粒子 */
+      const ox = WW / 2, oy = HH * 0.36;
+      const halfW = WW * 0.30, halfH = halfW * 0.96;
+      const PX = (t) => 16 * Math.pow(Math.sin(t), 3);
+      const PY = (t) => 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+      const PAL = ['#ff6ea8', '#ff3d7f', '#ffb0cd', '#ffd84d', '#fff3d6'];
+      for (let i = 0; i < 2600; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const u = 0.10 + Math.pow(Math.random(), 0.62) * 0.90;
+        const x = ox + (PX(a) * u / 16) * halfW;
+        const y = oy - (PY(a) * u / 17) * halfH;
+        g.globalAlpha = 0.45 + Math.random() * 0.55;
+        g.fillStyle = PAL[(Math.random() * PAL.length) | 0];
+        const s = 3 + ((Math.random() * 3) | 0);
+        g.fillRect(x | 0, y | 0, s, s);
+      }
+      g.globalAlpha = 1;
+
+      /* 文字 */
+      g.textAlign = 'center';
+      g.fillStyle = '#ffffff';
+      g.font = '64px PX, sans-serif';
+      g.fillText(CONFIG.nameA || '', WW / 2, HH * 0.70);
+      g.font = '120px PX, sans-serif';
+      g.fillStyle = '#ffe9f2';
+      g.shadowColor = 'rgba(255,90,150,.9)'; g.shadowBlur = 28;
+      g.fillText('生日快乐', WW / 2, HH * 0.80);
+      g.shadowBlur = 0;
+      g.font = '40px PX, sans-serif';
+      g.fillStyle = 'rgba(255,225,240,.85)';
+      g.fillText('在一起第 ' + fmt(DAYS) + ' 天', WW / 2, HH * 0.87);
+      g.font = '28px PX, sans-serif';
+      g.fillStyle = 'rgba(255,180,210,.6)';
+      g.fillText('FOR ' + (CONFIG.nameA || '') + ' · 2026', WW / 2, HH * 0.93);
+
+      const url = c.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '生日快乐.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTip('已生成，去相册看看 🐋（手机上长按图片也能保存）');
+      Sfx.chime();
+    });
+  }
+}
 
 /* ---------- 常驻特效：蛋糕烟花 + 抱抱爱心 ---------- */
 let cakeFwTimer = null, hugHeartTimer = null;
@@ -2613,7 +2780,8 @@ fitPixelText();
 
 /* ---------- 启动 ---------- */
 paint();
-let skip = REDUCE || location.hash === '#open' || window.__PX_SKIP_GATE__ === true;
+const JUMP = (location.hash || '').match(/^#ch(\d+)$/);
+let skip = REDUCE || location.hash === '#open' || window.__PX_SKIP_GATE__ === true || !!JUMP;
 try { skip = skip || sessionStorage.getItem('px-gift-opened') === '1'; } catch (e) {}
 if (skip) {
   opened = true;
@@ -2623,6 +2791,8 @@ if (skip) {
 } else {
   $('#days').textContent = '0';
 }
+/* #ch11 这样的深链：直接跳到那一屏 */
+if (JUMP) setTimeout(() => go(Math.max(0, Math.min(chs.length - 1, +JUMP[1] - 1))), 150);
 </script>
 </body>
 </html>
