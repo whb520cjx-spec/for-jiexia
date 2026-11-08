@@ -302,6 +302,40 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
 .night .rabbit{filter:drop-shadow(6px 8px 0 rgba(0,0,0,.45))}
 @keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 
+/* ---------- 11 祝福语飘浮 ---------- */
+.wish-stream{
+  position:absolute; inset:92px 0 34% 0; overflow:hidden; z-index:1; pointer-events:none;
+  -webkit-mask-image:linear-gradient(to top, transparent 4%, #000 34%);
+  mask-image:linear-gradient(to top, transparent 4%, #000 34%);
+}
+.wish-float{
+  position:absolute; bottom:-9%; white-space:nowrap; opacity:0;
+  font-family:var(--px); letter-spacing:.06em;
+  animation-name:wishRise; animation-timing-function:linear; animation-iteration-count:infinite;
+  text-shadow:0 0 12px rgba(255,110,160,.4), 2px 2px 0 rgba(0,0,0,.35);
+}
+@keyframes wishRise{
+  0%{transform:translate3d(0,0,0); opacity:0}
+  10%{opacity:.6}
+  72%{opacity:.5}
+  100%{transform:translate3d(var(--sway,0px),-115vh,0); opacity:0}
+}
+
+/* ---------- 11 一整颗心 ---------- */
+#heartCv{position:absolute; inset:0; width:100%; height:100%; z-index:0; pointer-events:none}
+.heart-in{position:absolute; left:0; right:0; bottom:0; z-index:2; padding-bottom:max(7vh,48px)}
+.heart-name{
+  margin:0 0 6px; font-family:var(--px); font-size:clamp(15px,4vw,20px); letter-spacing:.2em;
+  color:#fff; text-shadow:3px 3px 0 var(--pink), 0 0 18px rgba(255,110,160,.75);
+}
+.heart-big{
+  margin:6px 0 0; font-family:var(--px); font-size:clamp(30px,9vw,52px); letter-spacing:.1em;
+  color:#ffe9f2; text-shadow:5px 5px 0 #c2417a, 0 0 30px rgba(255,120,170,.8);
+  animation:heartBeatBig 1.9s steps(2,end) infinite;
+}
+@keyframes heartBeatBig{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+.heart-sub{margin-top:14px; font-size:clamp(11.5px,3vw,13px); color:rgba(255,225,240,.75)}
+
 /* ---------- 06 关于你 ---------- */
 .about-wrap{position:relative; width:100%; max-width:780px; margin:0 auto}
 .about-wrap::after{
@@ -1024,8 +1058,22 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
     </div>
   </section>
 
+  <!-- 11 一整颗心 -->
+  <section class="ch night" data-ch="11" data-key="heart" data-label="一整颗心">
+    <div class="night-glow"></div>
+    <div class="wish-stream" id="wishStream" aria-hidden="true"></div>
+    <canvas id="heartCv" aria-hidden="true"></canvas>
+    <div class="ch-in center heart-in">
+      <p class="kicker">CHAPTER 11 · 一整颗心</p>
+      <p class="heart-name"><span id="heartName">车洁霞</span></p>
+      <p class="heart-big">生日快乐</p>
+      <p class="sub heart-sub">这一整屏，都是我的心跳。</p>
+      <button class="pbtn" data-next type="button">最后一页 →</button>
+    </div>
+  </section>
+
   <!-- 09 收尾 -->
-  <section class="ch night finale-scene" data-ch="11" data-key="finale" data-label="生日快乐">
+  <section class="ch night finale-scene" data-ch="12" data-key="finale" data-label="生日快乐">
     <canvas id="finStars" class="fin-canvas" aria-hidden="true"></canvas>
     <svg class="fin-hill" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
       <path d="M0 150 C 180 96, 330 132, 480 120 C 640 108, 760 146, 900 136 C 1040 126, 1180 96, 1300 112 C 1380 122, 1420 132, 1440 128 L1440 320 L0 320 Z" fill="#221c47"/>
@@ -1749,6 +1797,7 @@ function paint() {
   starsOn = wantStars;
   $('#stars').style.opacity = wantStars ? '1' : '0';
   if (typeof finActive !== 'undefined') finActive = (cur === IDX.finale);
+  if (typeof heartActive !== 'undefined') heartActive = (cur === IDX.heart);
   const sr = $('#sr');
   if (sr) sr.textContent = '第 ' + (cur + 1) + ' 屏，' + (c.dataset.label || '');
 }
@@ -2171,6 +2220,132 @@ setTimeout(() => {
     }
   }
 }
+
+/* ---------- 11 祝福语：飘满屏的一句话们 ---------- */
+{
+  const box = document.getElementById('wishStream');
+  if (box) {
+    const LINES = [
+      '洁霞，生日快乐',
+      '二十一岁 快乐',
+      '第 ' + fmt(DAYS) + ' 天',
+      '要一直开心',
+      '岁岁平安',
+      '万事顺遂',
+      '少生气，多吃饭',
+      '想吃什么，我给你做',
+      '每天都要笑',
+      '一切都好',
+      '一起去看海',
+      '一直在我身边',
+      '明年今天 我还在',
+      '爱你，很久了'
+    ];
+    const COLORS = ['#ffb8d2', '#ff8ab8', '#ffe08a', '#cfe4ff', '#ff6ea8'];
+    LINES.forEach((txt, i) => {
+      const el = document.createElement('span');
+      el.className = 'wish-float';
+      el.textContent = txt;
+      const big = i % 5 === 0;
+      el.style.fontSize = (big ? 18 : 12) + 'px';
+      el.style.color = COLORS[i % COLORS.length];
+      /* 只走两侧，别穿过心口 */
+      const leftSide = i % 2 === 0;
+      if (leftSide) el.style.left = (1 + Math.random() * 5).toFixed(1) + '%';
+      else el.style.right = (1 + Math.random() * 5).toFixed(1) + '%';
+      el.style.setProperty('--sway', (Math.random() * 26 - 13).toFixed(0) + 'px');
+      el.style.animationDuration = (17 + Math.random() * 11).toFixed(1) + 's';
+      el.style.animationDelay = '-' + (Math.random() * 22).toFixed(1) + 's';
+      el.style.opacity = big ? '.34' : '.28';
+      box.appendChild(el);
+    });
+  }
+}
+
+/* ---------- 11 一整颗心：像素粒子拼出的心 ---------- */
+let heartActive = false;
+(function initHeart() {
+  const cv = document.getElementById('heartCv');
+  if (!cv) return;
+  const cx = cv.getContext('2d');
+  let W = 0, H = 0, raf = null, t0 = 0;
+
+  /* 心形参数方程 */
+  const hx = (t) => 16 * Math.pow(Math.sin(t), 3);
+  const hy = (t) => 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+
+  const N = LOW_END ? 1500 : 2800;
+  const pts = [];
+  for (let i = 0; i < N; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const u = 0.10 + Math.pow(Math.random(), 0.62) * 0.90;   /* 中心留空 */
+    pts.push({
+      x: hx(a) * u, y: hy(a) * u,
+      u,
+      s: (u > .82 ? 2.8 : 2.2) + Math.random() * 1.4,
+      ph: Math.random() * Math.PI * 2,
+      sp: 0.6 + Math.random() * 1.6
+    });
+  }
+
+  const cols = ['#ff6ea8', '#ff3d7f', '#ffb0cd', '#ffd84d'];
+  function size() {
+    const v = viewSize();
+    W = v.w; H = v.h;
+    const d = Math.min(DPR, 2);
+    cv.width = Math.round(W * d); cv.height = Math.round(H * d);
+    cx.setTransform(d, 0, 0, d, 0, 0);
+  }
+  size();
+  addEventListener('resize', size);
+
+  function loop(ts) {
+    raf = requestAnimationFrame(loop);
+    if (!heartActive) return;
+    t0 = (ts || 0) / 1000;
+
+    /* 心跳：两下快、一下慢 */
+    const beat = Math.sin(t0 * 2.1) * 0.55 + Math.sin(t0 * 4.2 + 0.6) * 0.22;
+    const scale = 1 + beat * 0.055;
+
+    const halfW = Math.min(W * 0.42, H * 0.31) * scale;
+    const halfH = halfW * 0.96;
+    const ox = W / 2, oy = H * 0.40;
+
+    cx.clearRect(0, 0, W, H);
+
+    /* 外发光 */
+    const g = cx.createRadialGradient(ox, oy, halfW * 0.2, ox, oy, halfW * 1.5);
+    g.addColorStop(0, 'rgba(255,110,168,.20)');
+    g.addColorStop(0.55, 'rgba(255,60,130,.10)');
+    g.addColorStop(1, 'rgba(255,60,130,0)');
+    cx.fillStyle = g;
+    cx.fillRect(0, 0, W, H);
+
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i];
+      const wob = Math.sin(t0 * p.sp + p.ph) * (1.5 + p.u * 2.2);
+      const px = ox + (p.x / 16) * halfW + wob;
+      const py = oy - (p.y / 17) * halfH + wob * 0.6;
+      const inner = p.u < 0.40;
+      cx.globalAlpha = Math.max(.35, Math.min(1, 0.78 + Math.sin(t0 * 1.7 + p.ph) * 0.22));
+      cx.fillStyle = inner ? (Math.random() < 0.5 ? '#fff3d6' : '#ffd84d') : cols[(i % 3)];
+      cx.fillRect(px | 0, py | 0, p.s, p.s);
+    }
+    cx.globalAlpha = 1;
+  }
+  raf = requestAnimationFrame(loop);
+
+  /* 点一下：炸一把 */
+  const sec = cv.closest('.ch');
+  if (sec) {
+    sec.addEventListener('pointerdown', (e) => {
+      burst(e.clientX, e.clientY, 40);
+      Sfx.blip(720, .06);
+      for (let k = 0; k < 3; k++) setTimeout(() => spawnHugHeart(0, 0), k * 80);
+    });
+  }
+})();
 
 /* ---------- 常驻特效：蛋糕烟花 + 抱抱爱心 ---------- */
 let cakeFwTimer = null, hugHeartTimer = null;
