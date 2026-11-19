@@ -3352,216 +3352,441 @@ setTimeout(() => {
   }
 }
 
-/* ---------- 11 一整颗心：小爱心粒子 + 流星雨 ---------- */
-let heartActive = false;
-(function initHeart() {
-  const cv = document.getElementById('heartCv');
-  if (!cv) return;
-  const cx = cv.getContext('2d');
-  let W = 0, H = 0, raf = null;
+/* ---------- 11 一整颗心：Codex 版（小爱心粒子 + 流星雨） ---------- */
 
-  /* 心形参数方程 */
-  const HX = (a) => 16 * Math.pow(Math.sin(a), 3);
-  const HY = (a) => 13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a);
+  (() => {
+    'use strict';
 
-  /* 心形轮廓（用于判断点是否在内部） */
-  const OUT = [];
-  for (let k = 0; k < 200; k++) {
-    const a = (k / 200) * Math.PI * 2;
-    OUT.push([HX(a) / 16, HY(a) / 17]);
-  }
-  const inPoly = (x, z) => {
-    let hit = false;
-    for (let i = 0, j = OUT.length - 1; i < OUT.length; j = i++) {
-      const xi = OUT[i][0], zi = OUT[i][1], xj = OUT[j][0], zj = OUT[j][1];
-      if (((zi > z) !== (zj > z)) && (x < (xj - xi) * (z - zi) / (zj - zi) + xi)) hit = !hit;
+    const PARTICLE_COUNT = 1840;
+    const HEART_SIZE = 0.62;
+    const HEART_CY = 0.40;   /* 心在画面高度的哪个位置居中 */
+    const METEOR_COUNT = 68;
+    const PALETTE = ['#7a0b33', '#b52250', '#f44780', '#ff79a6', '#ffb5cf', '#fff0f6'];
+    const CLOUD_MS = 150;
+    const FLIGHT_MS = 1200;
+    const POP_MS = 330;
+    const POP_SCALE = 0.06;
+    const BREATH_MS = 5000;
+
+    const BACKGROUND = '#0b090c';
+    const TAU = 2 * Math.PI;
+    const ORIENTATIONS = 16;
+    const GLYPH_SIZES = [0.009, 0.012, 0.015, 0.018, 0.022, 0.027, 0.034];
+    const HEART_GLYPH = new Path2D(
+      'M 0 -.25 C -.24 -.61 -.55 -.40 -.50 -.11 ' +
+      'C -.47 .12 -.17 .31 0 .47 C .17 .31 .47 .12 .50 -.11 ' +
+      'C .55 -.40 .24 -.61 0 -.25 Z'
+    );
+
+    const canvas = document.getElementById('heartCv');
+    const ctx = canvas.getContext('2d', { alpha: false });
+    const particles = sampleHeart();
+    const meteors = [];
+    const atlas = makeCanvas();
+    const settledHeart = makeCanvas();
+    let heartSpan = 1;
+    let width = 0;
+    let height = 0;
+    let pixelRatio = 1;
+    let raf = null;
+    let lastFrame = null;
+    let sceneTime = 0;
+    let assemblyStart = 0;
+    let resizePending = true;
+
+    function makeCanvas() {
+      return document.createElement('canvas');
     }
-    return hit;
-  };
 
-  /* 用"小爱心"当粒子：每种颜色预渲染一张贴图 */
-  const COLS = ['#ff3d7e', '#ff5f9c', '#ff7cb0', '#ff9ec6', '#ffc9de', '#fff2f7'];
-  const PAT = ['0110110', '1111111', '1111111', '0111110', '0011100', '0001000'];
-  const SPR = COLS.map((c) => {
-    const s = document.createElement('canvas');
-    s.width = s.height = 35;
-    const g = s.getContext('2d');
-    g.fillStyle = c;
-    const u = 5;
-    for (let y = 0; y < PAT.length; y++) {
-      for (let x = 0; x < 7; x++) {
-        if (PAT[y][x] === '1') g.fillRect(x * u, y * u, u, u);
+    function random(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function smoothstep(value) {
+      const t = clamp(value, 0, 1);
+      return t * t * (3 - 2 * t);
+    }
+
+    function tint(hex, alpha) {
+      return hex + Math.round(255 * alpha).toString(16).padStart(2, '0');
+    }
+
+    // Sample an even scatter across the entire silhouette. The signed distance
+    // softens the boundary and gives occasional strays room beyond the lobes.
+    function makeContour() {
+      const points = Array.from({ length: 128 }, (_, index) => {
+        const t = index * TAU / 128;
+        return {
+          x: 16 * Math.sin(t) ** 3 / 32,
+          y: -(13 * Math.cos(t) - 5 * Math.cos(2 * t) -
+            2 * Math.cos(3 * t) - Math.cos(4 * t))
+        };
+      });
+      const yMin = Math.min(...points.map(point => point.y));
+      const yMax = Math.max(...points.map(point => point.y));
+      for (const point of points) {
+        point.y = (point.y - (yMin + yMax) / 2) * 0.92 / (yMax - yMin);
       }
+      return points.map((point, index) => {
+        const next = points[(index + 1) % points.length];
+        const dx = next.x - point.x;
+        const dy = next.y - point.y;
+        return { ...point, dx, dy, inverseLengthSquared: 1 / (dx * dx + dy * dy) };
+      });
     }
-    return s;
-  });
 
-  /* 撒点：心里面均匀分布 */
-  const N = LOW_END ? 2000 : 3600;
-  const pts = [];
-  let guard = 0;
-  while (pts.length < N && guard < N * 12) {
-    guard++;
-    const x = (Math.random() * 2 - 1) * 1.02;
-    const z = (Math.random() * 2 - 1) * 1.14;
-    if (!inPoly(x, z)) continue;
-    const ci = Math.random() < 0.01 ? 5
-      : Math.max(0, Math.min(4, Math.floor((z + 1.15) / 2.15 * 5)));
-    const ang = Math.random() * Math.PI * 2;
-    const rad = 0.55 + Math.random() * 0.95;
-    pts.push({
-      x, z, s: 0.016 + Math.random() * 0.012, ci, ph: Math.random() * 6.28,
-      ox: Math.cos(ang) * rad, oy: Math.sin(ang) * rad,   /* 散开时的偏移（画布半径倍数） */
-      ang, rad, spin: (Math.random() - 0.5) * 0.5,
-      d: Math.random() * 380                             /* 出发延迟 */
-    });
-  }
-
-  /* 拼装状态：idle 散开 → assemble 汇聚 → burst 炸开 → steady 定型 */
-  let phase = 'idle', phaseT = 0, flash = 0;
-  const easeOut = (u) => 1 - Math.pow(1 - u, 3);
-
-  /* 流星雨 */
-  const MN = LOW_END ? 34 : 54;
-  const METEORS = [];
-  const MSCALE = () => Math.max(W, H);
-  function resetMeteor(m, first) {
-    m.x = Math.random() * (W * 1.25) - W * 0.15;
-    m.y = first ? Math.random() * H : -Math.random() * H * 0.55 - 40;
-    m.len = (0.14 + Math.random() * 0.20) * H;
-    m.sp = (0.9 + Math.random() * 1.4) * H / 120;
-    m.w = 2 + Math.round(Math.random() * 2);
-    m.a = 0.20 + Math.random() * 0.34;
-    m.c = Math.random() < 0.42 ? '#ffffff' : (Math.random() < 0.5 ? '#ff9ec6' : '#ff5f9c');
-  }
-
-  function size() {
-    const v = viewSize();
-    W = v.w; H = v.h;
-    const d = Math.min(DPR, 1.5);
-    cv.width = Math.round(W * d); cv.height = Math.round(H * d);
-    cx.setTransform(d, 0, 0, d, 0, 0);
-  }
-  size();
-  /* 尺寸算好之后再初始化流星，否则长度会是 0 */
-  for (let i = 0; i < MN; i++) { const m = {}; resetMeteor(m, true); METEORS.push(m); }
-  addEventListener('resize', size);
-
-  function loop(ts) {
-    raf = requestAnimationFrame(loop);
-    if (!heartActive) return;
-    const time = (ts || 0) / 1000;
-
-    cx.clearRect(0, 0, W, H);
-
-    /* —— 流星雨（先画，在心后面） —— */
-    for (let i = 0; i < METEORS.length; i++) {
-      const m = METEORS[i];
-      m.y += m.sp;
-      if (m.y - m.len > H) resetMeteor(m, false);
-      const seg = 12;
-      const segH = m.len / seg + 2;
-      for (let k = 0; k < seg; k++) {
-        const f = k / seg;
-        cx.globalAlpha = m.a * (1 - f) * (1 - f);
-        cx.fillStyle = m.c;
-        cx.fillRect(m.x | 0, (m.y - m.len * (1 - f)) | 0, m.w, segH);
+    function signedDistance(x, y, contour) {
+      let inside = false;
+      let nearestSquared = Infinity;
+      for (const edge of contour) {
+        const offsetX = x - edge.x;
+        const offsetY = y - edge.y;
+        if ((offsetY < 0) !== (offsetY < edge.dy) &&
+            offsetX < edge.dx * offsetY / edge.dy) {
+          inside = !inside;
+        }
+        const along = clamp((offsetX * edge.dx + offsetY * edge.dy) *
+          edge.inverseLengthSquared, 0, 1);
+        const dx = offsetX - along * edge.dx;
+        const dy = offsetY - along * edge.dy;
+        nearestSquared = Math.min(nearestSquared, dx * dx + dy * dy);
       }
+      return Math.sqrt(nearestSquared) * (inside ? -1 : 1);
     }
-    cx.globalAlpha = 1;
 
-    /* —— 心 —— */
-    const beat = Math.sin(time * 2.1) * 0.5 + Math.sin(time * 4.2 + 0.6) * 0.2;
-    const nowMs = performance.now();
-    const R = Math.max(W, H);
-    /* 拼成瞬间：整体轻轻放大一下再落回（像心"跳"了一下） */
-    let popK = 0;
-    if (phase === 'pop') {
-      const f = Math.min(1, (nowMs - phaseT) / 300);
-      popK = Math.sin(Math.PI * f) * 0.07;
-    }
-    const scale = Math.min(W * 0.375, H * 0.275) * (1 + beat * 0.05 + popK);
-    const ox = W / 2, oy = H * 0.335;
+    function sampleHeart() {
+      const contour = makeContour();
+      const samples = [];
+      while (samples.length < PARTICLE_COUNT) {
+        const x = random(-0.57, 0.57);
+        const y = random(-0.55, 0.52);
+        const distance = signedDistance(x, y, contour);
+        const edgeRipple = 0.009 * Math.sin(x * 91 + y * 47) +
+          0.006 * Math.sin(y * 152 - x * 29);
+        const depth = distance + edgeRipple;
+        const edgeFill = 0.92 * (1 - smoothstep((depth + 0.023) / 0.048));
+        const strayChance = (y < -0.25 ? 0.12 : 0.055) *
+          (1 - smoothstep((distance - 0.012) / 0.061));
+        if (Math.random() > edgeFill + strayChance) continue;
 
-    /* 状态推进 */
-    if (phase === 'assemble') {
-      let allIn = true;
-      for (let i = 0; i < pts.length; i++) {
-        if (nowMs - phaseT - pts[i].d < 1000) { allIn = false; break; }
+        const rim = 1 - smoothstep((-distance - 0.006) / 0.09);
+        const texture = Math.sin(x * 29 + y * 15) * Math.sin(y * 38 - x * 10);
+        const brightness = random(0, 1);
+        const shade = clamp(Math.round(1.05 + 3.7 * brightness ** 0.84 +
+          0.85 * rim + 0.62 * texture), 0, PALETTE.length - 1);
+        const size = clamp(Math.floor(0.7 + 5.3 * Math.random() ** 1.15 +
+          0.90 * rim), 0, GLYPH_SIZES.length - 1);
+        const angle = Math.random() < 0.82 ? random(-1.3, 1.3) : random(-Math.PI, Math.PI);
+        const rotation = (Math.round(angle * ORIENTATIONS / TAU) + ORIENTATIONS) % ORIENTATIONS;
+        samples.push({
+          x, y, shade, size, rotation,
+          soft: Math.random() < 0.32,
+          phase: random(0, TAU),
+          tile: null,
+          cloudX: 0,
+          cloudY: 0,
+          delay: 0,
+          bend: 0
+        });
       }
-      if (allIn) { phase = 'pop'; phaseT = nowMs; flash = 0.85; }
-    } else if (phase === 'pop') {
-      if (nowMs - phaseT > 300) { phase = 'steady'; phaseT = nowMs; }
+      // Smaller glyphs can sit beneath the larger ones.
+      return samples.sort((a, b) => a.size - b.size || a.shade - b.shade);
     }
-    if (flash > 0) flash = Math.max(0, flash - 0.035);
 
-    for (let i = 0; i < pts.length; i++) {
-      const p = pts[i];
-      const wob = Math.sin(time * 1.5 + p.ph) * 0.006;
-      let px = ox + (p.x + wob) * scale;
-      let py = oy - (p.z + wob) * scale;
+    // Each row contains every angle at one size and focus. Palette indices
+    // select the column group. The glow and soft edges are baked into the tiles.
+    function buildAtlas() {
+      const rows = [];
+      let widestTile = 0;
+      let atlasHeight = 0;
+      for (const scale of GLYPH_SIZES) {
+        const glyphWidth = heartSpan * scale;
+        const tileSize = 2 * Math.ceil(glyphWidth * 1.07 + 1);
+        rows.push({ glyphWidth, tileSize, y: atlasHeight });
+        widestTile = Math.max(widestTile, tileSize);
+        atlasHeight += 2 * tileSize;
+      }
 
-      if (phase === 'idle') {
-        /* 散开成一团缓慢旋转的星云 */
-        const a = p.ang + time * p.spin;
-        const r = p.rad * R * 0.55;
-        px += Math.cos(a) * r;
-        py += Math.sin(a) * r * 0.85;
-      } else {
-        /* 汇聚：只在 assemble 阶段有偏移，定型后必须归零 */
-        if (phase === 'assemble') {
-          const u = Math.min(1, Math.max(0, (nowMs - phaseT - p.d) / 1000));
-          const k = 1 - easeOut(u);
-          if (k > 0.001) {
-            const a = p.ang + time * p.spin;
-            const r = p.rad * R * 0.55;
-            px += Math.cos(a) * r * k;
-            py += Math.sin(a) * r * 0.85 * k;
+      // Fold the palette across rows so even a large desktop uses a compact atlas.
+      const columns = ORIENTATIONS * 2;
+      const paletteRows = Math.ceil(PALETTE.length / 2);
+      atlas.width = widestTile * columns;
+      atlas.height = atlasHeight * paletteRows;
+      const brush = atlas.getContext('2d');
+
+      for (const row of rows) {
+        row.tiles = [[], []];
+        for (let soft = 0; soft < 2; soft++) {
+          for (let shade = 0; shade < PALETTE.length; shade++) {
+            for (let rotation = 0; rotation < ORIENTATIONS; rotation++) {
+              const x = (shade % 2 * ORIENTATIONS + rotation) * row.tileSize;
+              const y = row.y * paletteRows +
+                (soft * paletteRows + Math.floor(shade / 2)) * row.tileSize;
+              const half = row.tileSize / 2;
+              brush.setTransform(1, 0, 0, 1, x + half, y + half);
+              brush.rotate(rotation * TAU / ORIENTATIONS);
+              brush.scale(row.glyphWidth, row.glyphWidth);
+              paintHeartGlyph(brush, shade, soft);
+              row.tiles[soft].push({ x, y, edge: row.tileSize, half });
+            }
           }
         }
       }
-
-      const s = p.s * scale;
-      cx.drawImage(SPR[p.ci], (px - s / 2) | 0, (py - s / 2) | 0, Math.max(2, s | 0), Math.max(2, s | 0));
+      for (const particle of particles) {
+        particle.tile = rows[particle.size].tiles[Number(particle.soft)]
+          [particle.shade * ORIENTATIONS + particle.rotation];
+      }
     }
 
-    /* 炸开瞬间的白光 */
-    if (flash > 0) {
-      const g = cx.createRadialGradient(ox, oy, 5, ox, oy, scale * 1.25);
-      g.addColorStop(0, 'rgba(255,255,255,' + (flash * 0.32).toFixed(3) + ')');
-      g.addColorStop(0.45, 'rgba(255,150,190,' + (flash * 0.18).toFixed(3) + ')');
-      g.addColorStop(1, 'rgba(255,120,170,0)');
-      cx.fillStyle = g;
-      cx.fillRect(ox - scale * 1.3, oy - scale * 1.3, scale * 2.6, scale * 2.6);
-    }
-  }
-  raf = requestAnimationFrame(loop);
+    function paintHeartGlyph(brush, shade, soft) {
+      const color = PALETTE[shade];
+      const halo = brush.createRadialGradient(0, 0, 0.13, 0, 0, soft ? 0.96 : 0.73);
+      halo.addColorStop(0, tint(color, soft ? 0.48 : 0.37));
+      halo.addColorStop(0.55, tint(PALETTE[Math.min(3, shade)], soft ? 0.22 : 0.14));
+      halo.addColorStop(1, tint(color, 0));
+      brush.fillStyle = halo;
+      brush.fillRect(-1, -1, 2, 2);
 
-  /* 按钮：开始拼心 */
+      const face = brush.createLinearGradient(-0.15, -0.43, 0.21, 0.52);
+      face.addColorStop(0, tint(PALETTE[Math.min(shade + 1, PALETTE.length - 1)], 0.98));
+      face.addColorStop(0.35, tint(color, 0.99));
+      face.addColorStop(1, tint(PALETTE[Math.max(0, shade - 1)], 0.85));
+      brush.fillStyle = face;
+      if (soft) brush.scale(0.82, 0.82);
+      brush.fill(HEART_GLYPH);
+    }
+
+    function drawGlyph(target, tile, x, y) {
+      target.drawImage(atlas, tile.x, tile.y, tile.edge, tile.edge,
+        x - tile.half, y - tile.half, tile.edge, tile.edge);
+    }
+
+    function cacheSettledHeart() {
+      const side = 2 * Math.ceil(heartSpan * 0.61 + 2);
+      settledHeart.width = side;
+      settledHeart.height = side;
+      const layer = settledHeart.getContext('2d');
+      const center = side / 2;
+      for (const particle of particles) {
+        drawGlyph(layer, particle.tile, center + particle.x * heartSpan,
+          center + particle.y * heartSpan);
+      }
+    }
+
+    // Bake the taper, soft outer trail and hot core at each meteor's own tilt.
+    // A frame only has to move the resulting tiles across the background.
+    function makeMeteor() {
+      const ratio = pixelRatio;
+      const tier = Math.random();
+      const longTrail = tier > 0.83;
+      const length = ratio * (longTrail ? random(86, 187) : random(14, 102));
+      const thickness = ratio * (tier > 0.94 ? random(2.0, 3.3) : random(0.48, 1.47));
+      const tilt = random(-0.082, 0.086);
+      const sprite = makeCanvas();
+      const padding = 2 * thickness + 2;
+      sprite.width = Math.ceil(Math.abs(tilt * length) + 2 * padding);
+      sprite.height = Math.ceil(length + 2 * padding);
+      const headX = padding + Math.max(0, tilt * length);
+      const headY = padding + length;
+      const trailColor = Math.random() < 0.75 ? PALETTE[2] : PALETTE[4];
+      const headColor = Math.random() < 0.59 ? PALETTE[5] : PALETTE[4];
+      const brush = sprite.getContext('2d');
+      brush.translate(headX, headY);
+      brush.rotate(-Math.atan(tilt));
+
+      const halo = brush.createLinearGradient(0, -length, 0, 0);
+      halo.addColorStop(0, tint(trailColor, 0));
+      halo.addColorStop(0.49, tint(trailColor, 0.13));
+      halo.addColorStop(0.88, tint(trailColor, 0.31));
+      halo.addColorStop(1, tint(trailColor, 0.39));
+      brush.fillStyle = halo;
+      paintTrail(brush, length, thickness * (longTrail ? 3.15 : 2.15));
+
+      const core = brush.createLinearGradient(0, -length, 0, 0);
+      core.addColorStop(0, tint(trailColor, 0));
+      core.addColorStop(0.33, tint(trailColor, 0.26));
+      core.addColorStop(0.73, tint(trailColor, 0.67));
+      core.addColorStop(0.95, tint(headColor, 0.96));
+      core.addColorStop(1, headColor);
+      brush.fillStyle = core;
+      paintTrail(brush, length, thickness);
+
+      return {
+        sprite, length, headX, headY, tilt,
+        speed: ratio * (longTrail ? random(290, 585) : random(100, 375)),
+        alpha: random(0.29, 0.92),
+        x: random(0, width),
+        y: random(-length, height + length)
+      };
+    }
+
+    function paintTrail(brush, length, width) {
+      const radius = width / 2;
+      brush.beginPath();
+      brush.moveTo(0, -length);
+      brush.quadraticCurveTo(radius * 0.57, -length * 0.64, radius, -radius);
+      brush.bezierCurveTo(radius, radius * 0.73, -radius, radius * 0.73, -radius, -radius);
+      brush.quadraticCurveTo(-radius * 0.38, -length * 0.62, 0, -length);
+      brush.fill();
+    }
+
+    function drawShower(seconds) {
+      for (const meteor of meteors) {
+        const fall = meteor.speed * seconds;
+        meteor.y += fall;
+        meteor.x += fall * meteor.tilt;
+        if (meteor.y - meteor.length > height) {
+          meteor.x = random(-0.02, 1.02) * width;
+          meteor.y = -random(5, meteor.length);
+        }
+        ctx.globalAlpha = meteor.alpha;
+        ctx.drawImage(meteor.sprite, meteor.x - meteor.headX, meteor.y - meteor.headY);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // Cloud positions are viewport-relative, so a resize during flight keeps
+    // the same assembly in progress. Each heart eases along a short curved path.
+    function assemble() {
+      assemblyStart = sceneTime;
+      for (const particle of particles) {
+        const angle = random(0, TAU);
+        const radius = Math.sqrt(Math.random());
+        particle.cloudX = Math.cos(angle) * radius * 0.56;
+        particle.cloudY = Math.sin(angle) * radius * 0.51;
+        particle.delay = random(0, FLIGHT_MS * 0.19);
+        particle.bend = random(-0.19, 0.19) * (0.45 + radius);
+      }
+    }
+
+    function drawAssemblingHeart(elapsed) {
+      const centerX = width / 2;
+      const centerY = height * HEART_CY;
+      const driftTime = elapsed * 0.0016;
+      for (const particle of particles) {
+        const progress = clamp((elapsed - CLOUD_MS - particle.delay) /
+          (FLIGHT_MS - particle.delay), 0, 1);
+        const remaining = (1 - progress) ** 3;
+        const drift = Math.sin(particle.phase + driftTime) * 0.012;
+        const targetX = particle.x * heartSpan;
+        const targetY = particle.y * heartSpan;
+        const arc = 4 * remaining * (1 - remaining) * particle.bend * heartSpan;
+        const x = centerX + targetX + ((particle.cloudX + drift) * width - targetX) *
+          remaining + arc;
+        const y = centerY + targetY + ((particle.cloudY - drift) * height - targetY) *
+          remaining - arc * 0.35;
+        drawGlyph(ctx, particle.tile, x, y);
+      }
+    }
+
+    function drawSettledHeart(elapsed) {
+      const sinceArrival = elapsed - CLOUD_MS - FLIGHT_MS;
+      const pop = Math.sin(Math.PI * Math.min(sinceArrival / POP_MS, 1)) ** 2;
+      const breathingTime = Math.max(0, sinceArrival - POP_MS);
+      const breath = (1 - Math.cos(TAU * breathingTime / BREATH_MS)) / 2;
+      const scale = 1 + POP_SCALE * pop + 0.022 * breath;
+      const size = settledHeart.width * scale;
+      ctx.globalAlpha = 1 - 0.08 * breath;
+      ctx.drawImage(settledHeart, (width - size) / 2, height * HEART_CY - size / 2, size, size);
+      ctx.globalAlpha = 1;
+    }
+
+    // Work in backing pixels. Rebuild the artwork only if that backing size
+    // changes, and freeze the animation clock while the page is hidden.
+    function resize() {
+      resizePending = false;
+      const ratio = Math.min(2, window.devicePixelRatio || 1);
+      const nextWidth = Math.max(1, Math.round(canvas.clientWidth * ratio));
+      const nextHeight = Math.max(1, Math.round(canvas.clientHeight * ratio));
+      if (nextWidth === width && nextHeight === height && ratio === pixelRatio) return;
+
+      const nextSpan = Math.min(nextWidth, nextHeight) * HEART_SIZE;
+      const rebuildHeart = nextSpan !== heartSpan || !particles[0].tile;
+      const rebuildMeteors = ratio !== pixelRatio || meteors.length === 0;
+      const widthScale = width ? nextWidth / width : 1;
+      const heightScale = height ? nextHeight / height : 1;
+      canvas.width = width = nextWidth;
+      canvas.height = height = nextHeight;
+      pixelRatio = ratio;
+      heartSpan = nextSpan;
+
+      if (rebuildHeart) {
+        buildAtlas();
+        cacheSettledHeart();
+      }
+      if (rebuildMeteors) {
+        meteors.length = 0;
+        for (let i = 0; i < METEOR_COUNT; i++) meteors.push(makeMeteor());
+      } else {
+        for (const meteor of meteors) {
+          meteor.x *= widthScale;
+          meteor.y *= heightScale;
+        }
+      }
+    }
+
+    function frame(now) {
+      raf = null;
+      if (document.visibilityState === 'hidden') return;
+      resize();
+      const delta = lastFrame === null ? 0 : Math.min(now - lastFrame, 50);
+      lastFrame = now;
+      sceneTime += delta;
+
+      ctx.clearRect(0, 0, width, height);
+      drawShower(delta / 1000);
+      const elapsed = sceneTime - assemblyStart;
+      if (elapsed < CLOUD_MS + FLIGHT_MS) {
+        drawAssemblingHeart(elapsed);
+      } else {
+        drawSettledHeart(elapsed);
+      }
+      requestFrame();
+    }
+
+    function requestFrame() {
+      if (raf === null && document.visibilityState !== 'hidden') {
+        raf = requestAnimationFrame(frame);
+      }
+    }
+
+    window.addEventListener('resize', () => {
+      resizePending = true;
+      requestFrame();
+    });
+    document.addEventListener('visibilitychange', () => {
+      lastFrame = null;
+      if (document.visibilityState === 'hidden') {
+        if (raf !== null) cancelAnimationFrame(raf);
+        raf = null;
+      } else {
+        resizePending = true;
+        requestFrame();
+      }
+    });
+    window.addEventListener('heart:assemble', assemble);
+
+    assemble();
+    requestFrame();
+  })();
+  
+
+/* 拼心按钮 -> 触发汇聚动画 */
+(function wireHeart() {
   const btn = document.getElementById('assembleBtn');
-  if (btn) {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (phase === 'assemble') return;
-      phase = 'assemble';
-      phaseT = performance.now();
-      pts.forEach((p) => { p.d = Math.random() * 380; p.ang = Math.random() * Math.PI * 2; p.rad = 0.55 + Math.random() * 0.95; });
-      btn.textContent = '✨ 再拼一次';
-      btn.classList.add('done');
-      Sfx.chime();
-      for (let k = 0; k < 3; k++) setTimeout(() => Sfx.blip(520 + k * 180, .08, 'sine', .04), k * 140);
-    });
-  }
-
-  /* 点一下：炸一把 */
-  const sec = cv.closest('.ch');
-  if (sec) {
-    sec.addEventListener('click', (e) => {
-      if (e.target.closest('.pbtn')) return;
-      burst(e.clientX, e.clientY, 34);
-      Sfx.blip(720, .05);
-    });
-  }
+  if (!btn) return;
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    try { window.dispatchEvent(new Event('heart:assemble')); } catch (err) {}
+    btn.textContent = '✨ 再拼一次';
+    btn.classList.add('done');
+    Sfx.chime();
+    for (let k = 0; k < 3; k++) setTimeout(() => Sfx.blip(520 + k * 180, .08, 'sine', .04), k * 140);
+  });
 })();
 
 /* ---------- 11 生成一张可保存的卡片 ---------- */
