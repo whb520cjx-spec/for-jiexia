@@ -845,6 +845,15 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
   .title.day{text-shadow:-3px 0 0 #fff,3px 0 0 #fff,0 -3px 0 #fff,0 3px 0 #fff,6px 6px 0 rgba(58,35,64,.16)}
 }
 /* 矮屏（iPhone SE 这类 667 高）：相册/时间线更容易顶出去 */
+/* 大屏（桌面/平板）：蛋糕和标题都放大一档 */
+@media (min-width:900px) and (min-height:680px){
+  .cake{height:min(52vh,470px)}
+  #t4{font-size:clamp(26px,2.8vw,44px)}
+  .ch .sub{font-size:clamp(13px,1.05vw,16px)}
+  [data-key="cake"]{padding-top:36px; padding-bottom:36px}
+  [data-key="cake"] .kicker{margin-bottom:6px}
+}
+
 @media (max-height:730px) and (orientation:portrait){
   .ch{padding:52px 14px 60px}
   .book-body{height:min(380px,39vh)}
@@ -2898,6 +2907,7 @@ const cake = $('#cake');
     function frame(timestamp) {
       frameId = null;
       if (document.visibilityState === 'hidden') return;
+      resize();
       const dt = previous === null ? 0 : clamp((timestamp - previous) / 1000, 0, .05);
       previous = timestamp;
       time += dt;
@@ -2996,6 +3006,9 @@ const cake = $('#cake');
 
     document.addEventListener('visibilitychange', syncVisibility);
     window.addEventListener('resize', resize);
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(() => resize()).observe(canvas);
+    }
     resize();
     syncVisibility();
   })();
