@@ -476,7 +476,7 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
 
 /* ---------- 蛋糕 ---------- */
 .cake{
-  position:relative; height:min(52vh,438px); width:auto; aspect-ratio:760/966;
+  position:relative; height:min(52vh,440px); width:auto; aspect-ratio:760/966;
   margin:clamp(4px,1vh,16px) auto 0; padding:0; border:0; background:none;
   display:block; touch-action:none;
 }
@@ -706,6 +706,76 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
 
 .days-note{margin:10px 0 0; font-family:var(--mono); font-size:clamp(11px,2.9vw,13px);
   letter-spacing:.06em; color:var(--ink-soft,#9aa3c9)}
+﻿/* ===== 09 信封（樱花） ===== */
+.env-wrap{position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); z-index:5;
+  display:grid; place-items:center; cursor:pointer;
+  transition:opacity .45s ease, transform .45s ease}
+.env-wrap.gone{opacity:0; transform:translateY(-50%) scale(1.06); pointer-events:none}
+.env{position:relative; width:min(330px,80vw); aspect-ratio:1.55/1;
+  filter:drop-shadow(0 18px 28px rgba(90,40,60,.42))}
+/* 纸面：淡粉，带一点旧纸的斑驳 */
+.env-body{position:absolute; inset:0; border-radius:6px;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255,255,255,.55), transparent 42%),
+    radial-gradient(circle at 82% 78%, rgba(214,140,165,.18), transparent 46%),
+    linear-gradient(160deg,#fdf0f4,#f6d9e3 58%,#edc3d2);
+  box-shadow:inset 0 0 0 2px rgba(190,120,145,.42), inset 0 -12px 26px rgba(180,110,135,.18)}
+/* 花枝（用两层小花瓣点阵暗示，不依赖图片） */
+.env-body::after{content:""; position:absolute; inset:0; border-radius:6px; pointer-events:none;
+  background:
+    radial-gradient(circle 5px at 12% 16%, #e987a6 96%, transparent 100%),
+    radial-gradient(circle 4px at 19% 9%, #f3a9c0 96%, transparent 100%),
+    radial-gradient(circle 4.5px at 24% 19%, #dd6f92 96%, transparent 100%),
+    radial-gradient(circle 3.5px at 8% 25%, #f6bccd 96%, transparent 100%),
+    radial-gradient(circle 4.5px at 88% 22%, #e987a6 96%, transparent 100%),
+    radial-gradient(circle 3.5px at 94% 15%, #f3a9c0 96%, transparent 100%),
+    radial-gradient(circle 4px at 80% 15%, #dd6f92 96%, transparent 100%);
+  opacity:.85}
+.env-flap{position:absolute; left:0; right:0; top:0; height:56%;
+  background:linear-gradient(180deg,#fbeaf0,#f2cfdc 70%,#e9bccd);
+  clip-path:polygon(0 0,100% 0,50% 100%); transform-origin:top center;
+  transition:transform .55s cubic-bezier(.4,.05,.2,1); z-index:3;
+  box-shadow:0 3px 10px rgba(150,90,110,.26)}
+.env-wrap.open .env-flap{transform:rotateX(180deg)}
+/* 火漆换成花的形状 */
+.env-seal{position:absolute; left:50%; top:52%; width:46px; height:46px; margin:-23px 0 0 -23px;
+  z-index:4; display:grid; place-items:center;
+  background:radial-gradient(circle at 36% 30%, #f2819f, #b8345a 68%);
+  border-radius:46% 54% 50% 50%/50% 46% 54% 50%;
+  box-shadow:0 2px 7px rgba(110,20,45,.45), inset 0 -2px 5px rgba(0,0,0,.22);
+  color:#fff0f5; font-size:20px; line-height:1;
+  transition:transform .4s ease, opacity .4s ease}
+.env-wrap.open .env-seal{transform:scale(.2) rotate(35deg); opacity:0}
+.env-stamp{position:absolute; right:14px; top:12px; width:46px; height:54px; z-index:2;
+  background:#fffaf3; border:1px dashed rgba(190,120,145,.75);
+  box-shadow:inset 0 0 0 3px rgba(255,255,255,.75);
+  display:grid; place-items:center; font-size:20px; color:#d9688c}
+.env-to{position:absolute; left:16px; bottom:14px; z-index:2; font-family:var(--px);
+  font-size:clamp(13px,3.4vw,16px); color:#8a4a5f; letter-spacing:.08em}
+.env-from{position:absolute; right:14px; bottom:14px; z-index:2; font-family:var(--mono);
+  font-size:10px; color:rgba(138,74,95,.68); letter-spacing:.1em}
+.env-hint{position:absolute; left:0; right:0; bottom:-30px; text-align:center; z-index:5;
+  font-family:var(--mono); font-size:11px; letter-spacing:.22em; color:rgba(255,214,230,.78);
+  animation:gatePulse 1.7s ease-in-out infinite}
+.env-paper{position:absolute; left:50%; top:50%; width:min(300px,74vw); height:76%;
+  transform:translate(-50%,-50%) scaleY(.02); opacity:0; border-radius:4px; z-index:1;
+  background:linear-gradient(#fffdf8,#fbf1ec); box-shadow:0 10px 26px rgba(90,30,50,.45);
+  transition:transform .6s cubic-bezier(.2,.7,.2,1), opacity .35s ease}
+.env-wrap.open .env-paper{transform:translate(-50%,-118%) scaleY(1); opacity:1}
+/* 信封周围飘几片樱花 */
+.env-petal{position:absolute; width:10px; height:10px; z-index:0; pointer-events:none; opacity:0;
+  background:radial-gradient(circle at 32% 28%, #ffe3ef, #f9b6cf 62%, #e88aa9);
+  border-radius:60% 40% 55% 45%/55% 60% 40% 45%;
+  animation:envPetal linear infinite}
+@keyframes envPetal{
+  0%{opacity:0; transform:translate3d(0,-40px,0) rotate(0)}
+  15%{opacity:.95}
+  100%{opacity:0; transform:translate3d(40px,120px,0) rotate(360deg)}
+}
+.ch-in.is-hidden{opacity:0; transform:translateY(18px); pointer-events:none;
+  transition:opacity .6s ease .35s, transform .6s ease .35s}
+.ch-in.is-hidden.shown{opacity:1; transform:none; pointer-events:auto}
+
 /* ===== ⑪ 结尾倒计时牌 ===== */
 .bd-card{width:min(320px,84vw); margin:16px auto 0; perspective:900px; cursor:pointer}
 .bd-inner{position:relative; transform-style:preserve-3d; transition:transform .7s cubic-bezier(.4,.05,.3,1)}
@@ -810,10 +880,10 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
 /* 矮屏（iPhone SE 这类 667 高）：相册/时间线更容易顶出去 */
 /* 大屏（桌面/平板）：蛋糕和标题都放大一档 */
 @media (min-width:900px) and (min-height:680px){
-  .cake{height:min(52vh,470px)}
+  .cake{height:min(58vh,520px)}
   #t4{font-size:clamp(26px,2.8vw,44px)}
   .ch .sub{font-size:clamp(13px,1.05vw,16px)}
-  [data-key="cake"]{padding-top:36px; padding-bottom:36px}
+  [data-key="cake"]{padding-top:22px; padding-bottom:22px}
   [data-key="cake"] .kicker{margin-bottom:6px}
 }
 
@@ -1374,7 +1444,23 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
   <!-- 07 那封信 -->
   <section class="ch night" data-ch="9" data-key="letter" data-label="那封信">
     <div class="night-glow"></div>
-    <div class="ch-in center">
+    <div class="env-wrap" id="envWrap" role="button" tabindex="0" aria-label="拆开这封信">
+      <div class="env">
+        <span class="env-body"></span>
+        <span class="env-flap"></span>
+        <span class="env-seal">✿</span>
+        <span class="env-stamp">❀</span>
+        <span class="env-to">致 洁霞</span>
+        <span class="env-from">from 桓标</span>
+        <span class="env-hint">轻触拆开</span>
+      </div>
+      <div class="env-paper" id="envPaper"></div>
+      <i class="env-petal" style="left:6%;top:14%;animation-duration:6.5s;animation-delay:-1s"></i>
+      <i class="env-petal" style="left:86%;top:64%;animation-duration:7.8s;animation-delay:-3s"></i>
+      <i class="env-petal" style="left:74%;top:6%;animation-duration:5.9s;animation-delay:-4.4s"></i>
+      <i class="env-petal" style="left:18%;top:72%;animation-duration:8.4s;animation-delay:-2.2s"></i>
+    </div>
+    <div class="ch-in center is-hidden" id="letterIn">
       <p class="kicker" id="k7">CHAPTER 07 · 信</p>
       <h2 class="title night" id="t7" style="font-size:clamp(26px,6vw,50px)">有封信，要点开</h2>
       <div class="dialog" style="margin-top:22px">
@@ -4499,7 +4585,7 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
   const MAX_IMAGE_SIDE = 1200;
   const JPEG_QUALITY = 0.82;
   const FLIP_MS = 520;
-  const COVER_MS = 620;
+  const COVER_MS = 860;
   const STORAGE_KEY = 'sakura-album-photos-v1';
   const STORE = 'album';
 
@@ -4965,7 +5051,7 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
       turnLayer.replaceChildren(sheet);
       const timing = {
         duration: cover ? COVER_MS : FLIP_MS,
-        easing: 'cubic-bezier(.43,.09,.28,1)',
+        easing: 'cubic-bezier(.33,.02,.16,1)',
         direction: reverse ? 'reverse' : 'normal',
         fill: 'both'
       };
@@ -5409,5 +5495,39 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
   }
 })();
 </script>
+﻿<script>
+/* ===== 09 信封拆开 ===== */
+(function () {
+  var wrap = document.getElementById('envWrap');
+  var inner = document.getElementById('letterIn');
+  if (!wrap || !inner) return;
+  var opened = false;
+  function open() {
+    if (opened) return;
+    opened = true;
+    wrap.classList.add('open');
+    try { Sfx.blip(420, .12, 'sine', .05); setTimeout(function(){ Sfx.blip(620,.14,'sine',.04); }, 220); } catch (e) {}
+    setTimeout(function () {
+      wrap.classList.add('gone');
+      inner.classList.remove('is-hidden');
+      requestAnimationFrame(function () { inner.classList.add('shown'); });
+    }, 520);
+  }
+  wrap.addEventListener('click', open);
+  wrap.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+  });
+  setInterval(function () {
+    if (typeof cur === 'undefined' || typeof IDX === 'undefined') return;
+    if (cur !== IDX.letter && opened) {
+      opened = false;
+      wrap.classList.remove('open', 'gone');
+      inner.classList.add('is-hidden');
+      inner.classList.remove('shown');
+    }
+  }, 700);
+})();
+</script>
 </body>
+
 </html>
