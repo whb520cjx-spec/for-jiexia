@@ -710,7 +710,8 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
 .env-wrap{position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); z-index:5;
   display:grid; place-items:center; cursor:pointer;
   transition:opacity .45s ease, transform .45s ease}
-.env-wrap.gone{opacity:0; transform:translateY(-50%) scale(1.06); pointer-events:none}
+.env-wrap.under{opacity:.85; transform:translateY(-50%) scale(.97);
+  pointer-events:none; filter:saturate(.95) brightness(.88)}
 .env{position:relative; width:min(330px,80vw); aspect-ratio:1.55/1;
   filter:drop-shadow(0 18px 28px rgba(90,40,60,.42))}
 /* 纸面：淡粉，带一点旧纸的斑驳 */
@@ -772,6 +773,31 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
   15%{opacity:.95}
   100%{opacity:0; transform:translate3d(40px,120px,0) rotate(360deg)}
 }
+/* 打开后：信纸压着信封 */
+#letterIn{position:absolute; inset:52px 14px 74px; z-index:6; display:flex;
+  flex-direction:column; justify-content:center; align-items:center; gap:6px}
+#letterIn .dialog{width:100%; max-width:520px; margin:0; max-height:100%; display:flex; flex-direction:column}
+#letterIn .dialog-body{overflow-y:auto; max-height:46vh; -webkit-overflow-scrolling:touch}
+#letterIn .dialog-body::-webkit-scrollbar{width:0}
+#letterIn .title{margin:0 0 4px}
+#letterIn .dialog{
+  background:
+    radial-gradient(circle 6px at 8% 12%, #f6bccd 96%, transparent 100%),
+    radial-gradient(circle 5px at 15% 6%, #e987a6 96%, transparent 100%),
+    radial-gradient(circle 5px at 91% 88%, #f3a9c0 96%, transparent 100%),
+    radial-gradient(circle 4px at 84% 94%, #dd6f92 96%, transparent 100%),
+    linear-gradient(168deg,#fffaf6,#fdf0f3 46%,#f8dfe8);
+  border:1px solid rgba(200,140,160,.55);
+  border-radius:5px;
+  box-shadow:0 14px 30px rgba(70,25,45,.38), inset 0 0 0 1px rgba(255,255,255,.6);
+  transform:rotate(-.35deg);
+}
+#letterIn .dialog-bar{border-bottom:1px dashed rgba(190,120,145,.45); color:#a4637a}
+#letterIn .dialog-body{
+  font-family:"Kaiti SC","STKaiti",KaiTi,"楷体","Songti SC",serif;
+  font-size:clamp(15px,4.1vw,18px); line-height:2.05; letter-spacing:.045em; color:#5d3a48;
+}
+#letterIn .dialog-foot,#letterIn .letter-ps{font-family:"Kaiti SC","STKaiti",KaiTi,"楷体",serif; color:#8a5567}
 .ch-in.is-hidden{opacity:0; transform:translateY(18px); pointer-events:none;
   transition:opacity .6s ease .35s, transform .6s ease .35s}
 .ch-in.is-hidden.shown{opacity:1; transform:none; pointer-events:auto}
@@ -1228,6 +1254,312 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
     border: 1px solid #f3ccd45c; border-radius: 20px; background: #513843e6;
     color: #fff3e9; min-width: 42px; min-height: 40px; padding: 4px 12px;
   }
+  .sa-view-controls button:disabled { opacity: .45; }
+  .sa-view-close, .sa-view-step { position: absolute; }
+  .sa-view-close { top: 12px; right: 12px; }
+  .sa-view-step { top: 43%; }
+  .sa-view-step[data-step="-1"] { left: 7px; }
+  .sa-view-step[data-step="1"] { right: 7px; }
+  @media (min-width: 650px) {
+    .sa-album { --page-radius: 8px; }
+    .sa-view-step[data-step="-1"] { left: 2vw; }
+    .sa-view-step[data-step="1"] { right: 2vw; }
+  }
+  @media (hover: none) { .sa-photo-remove { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .sa-corner::before { transition: none; } }
+
+
+/* ===== 相册 自由版（Codex round2） ===== */
+
+  /* Tabletop, album dimensions and shared controls */
+  body[data-sakura-standalone] { margin: 0; background: #f4ebe7; }
+  .sa-album, .sa-album * { box-sizing: border-box; }
+  .sa-album {
+    --cover-light: #f6dfdd;
+    --cover-pink: #e7b8bd;
+    --cover-edge: #ad727c;
+    --foil: #9c714b;
+    --ink: #593a42;
+    --muted: #79565c;
+    --paper: #faf3e8;
+    --page-radius: 5px;
+    --book-w: min(100%, 1020px, max(700px, 128svh));
+    color: var(--ink);
+    font-family: "Songti SC", SimSun, "Noto Serif CJK SC", Georgia, serif;
+    text-align: center;
+    isolation: isolate;
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(16px, 3.7vh, 38px);
+    padding: 22px clamp(12px, 4vw, 78px) 20px;
+    overflow: hidden;
+    background:
+      var(--grain, none),
+      radial-gradient(ellipse at 48% 21%, #fff9f1 1%, #f6ece6 52%, #e9d5d4 100%);
+  }
+  .sa-album button, .sa-album input { font: inherit; }
+  .sa-album button { color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .sa-album button:focus-visible { outline: 2px solid #a34c69; outline-offset: 3px; }
+  .sa-album button:disabled { cursor: default; }
+  .sa-album [hidden] { display: none !important; }
+  .sa-header { position: relative; width: var(--book-w); margin: 0 auto; }
+  .sa-masthead { display: flex; align-items: center; justify-content: center; gap: 11px; }
+  .sa-masthead::before, .sa-masthead::after {
+    content: ""; height: 1px; width: clamp(15px, 5vw, 56px); background: #c4a09a;
+  }
+  .sa-mark { font-size: 22px; color: #a66072; line-height: 1; }
+  .sa-header h1 { margin: 5px 0 0; font: 400 italic clamp(24px, 3.4vw, 42px)/1.1 Georgia, serif; }
+  .sa-stage {
+    position: relative;
+    width: var(--book-w);
+    height: clamp(272px, 73vw, min(550px, 64svh));
+    margin: 0 auto;
+    perspective: 1550px;
+    perspective-origin: 50% 44%;
+  }
+  .sa-book {
+    position: absolute; inset: 0;
+    transform-style: preserve-3d;
+    transform: translateX(0);
+  }
+  .sa-album[data-view="closed"] .sa-book { transform: translateX(-25%); }
+  .sa-leaves, .sa-stack, .sa-cast, .sa-desk-shadow, .sa-turn-layer { position: absolute; inset: 0; }
+  .sa-turn-layer { transform-style: preserve-3d; pointer-events: none; }
+  .sa-desk-shadow {
+    top: 8%; bottom: -14px; left: 1%; right: 1%; border-radius: 10% 10% 7% 7%;
+    background: #764e53; opacity: .22; filter: blur(21px); pointer-events: none;
+  }
+  .sa-album[data-view="closed"] .sa-desk-shadow { left: 50%; }
+  .sa-stack {
+    inset: 5px -4px -9px;
+    border: 1px solid #aa7679;
+    border-bottom: 3px solid #9b626a;
+    border-radius: 7px 11px 9px 9px;
+    background: var(--grain, none), repeating-linear-gradient(180deg, #ead7c6 0 2px, #c9ab9a 2px 3px);
+    box-shadow: 0 6px 11px #58372d30, 0 2px 2px #5d3a4433;
+  }
+  .sa-album[data-view="closed"] .sa-stack { left: 50%; }
+  .sa-stack, .sa-desk-shadow { transform-origin: right center; }
+  .sa-ribbon-track { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+  .sa-album[data-view="closed"] .sa-ribbon-track { transform: translateX(30%); }
+  .sa-ribbon {
+    position: absolute; left: 55%; top: calc(100% - 4px);
+    width: clamp(14px, 2.7vw, 29px); height: clamp(28px, 5vw, 51px);
+    transform: rotate(-10deg); transform-origin: top;
+    background: linear-gradient(90deg, #ad6479, #c78194 22%, #d38d9d 46%, #a8586f 95%);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 49% 79%, 0 100%);
+  }
+
+  /* Endpapers, printed details and the two sides of each page */
+  .sa-page, .sa-cover, .sa-face { position: absolute; top: 0; bottom: 0; }
+  .sa-page {
+    --gutter: linear-gradient(to left, #6c403a35, #9b665b12 3%, transparent 12%);
+    width: 50%; left: 0;
+    border-radius: var(--page-radius) 2px 1px var(--page-radius);
+    border: 1px solid #c8a695;
+    border-right: 0;
+    background-color: var(--paper);
+    background-image: var(--grain, none), var(--gutter), linear-gradient(138deg, #fffaf0, #f2e5d7);
+    box-shadow: inset 0 2px 1px #fff9, inset 0 -2px 2px #a87a6333;
+    overflow: hidden;
+  }
+  .sa-page[data-side="right"] {
+    --gutter: linear-gradient(to right, #67413c44, #9b665b18 4%, transparent 12%);
+    left: 50%;
+    border-radius: 2px var(--page-radius) var(--page-radius) 1px;
+    border-right: 1px solid #c8a695;
+  }
+  .sa-page::before {
+    content: ""; position: absolute; pointer-events: none; inset: 0;
+    background: var(--endpaper-art, none) no-repeat left bottom / 70% auto;
+    opacity: .35;
+  }
+  .sa-page[data-side="right"]::before { transform: scaleX(-1); }
+  .sa-page-inner {
+    position: absolute; inset: clamp(10px, 2.9vw, 31px) clamp(9px, 3.4vw, 44px);
+    display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: clamp(9px, 1.7vw, 19px);
+  }
+  .sa-page-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 4px;
+    min-width: 0; border-bottom: 1px solid #c6a79886; padding-bottom: clamp(3px, .6vw, 7px);
+  }
+  .sa-page-head span { color: #a47276; font-size: clamp(14px, 2vw, 24px); line-height: 1; }
+  .sa-page-tools { display: flex; align-items: center; gap: clamp(7px, 1.6vw, 18px); }
+  .sa-add, .sa-tidy, .sa-close-book {
+    border: 0; background: none; padding: 2px 0; min-height: 28px; color: var(--muted);
+    font-size: clamp(11px, 1.4vw, 14px) !important; white-space: nowrap;
+  }
+  .sa-add:hover, .sa-tidy:hover, .sa-close-book:hover { color: #a14964; text-decoration: underline; }
+  .sa-tidy:disabled { opacity: .55; }
+  .sa-number {
+    justify-self: start; color: #815c60; font: italic clamp(12px, 1.5vw, 17px)/1 Georgia, serif;
+    letter-spacing: .06em;
+  }
+  .sa-page[data-side="right"] .sa-number { justify-self: end; }
+  .sa-grid {
+    display: grid; min-height: 0; grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(var(--rows, 4), minmax(0, 1fr));
+    gap: clamp(4px, 1.2vw, 15px);
+  }
+  .sa-empty {
+    grid-area: 1 / 1 / -1 / -1; place-self: center; margin: 0; color: #8c6569;
+    font-size: clamp(11px, 1.45vw, 15px);
+  }
+  .sa-endnote {
+    display: grid; gap: 10px; justify-items: center; padding: 10px;
+    color: #8a626a; letter-spacing: .08em;
+  }
+  .sa-endnote strong {
+    font: 400 italic clamp(15px, 2.1vw, 22px)/1.3 Georgia, serif; color: #a05a70;
+    border-bottom: 1px solid #d8b7bb; padding-bottom: 6px;
+  }
+  .sa-endnote span { font-size: clamp(11px, 1.4vw, 14px); line-height: 1.9; text-align: center; }
+  .sa-photo {
+    position: relative; min-width: 0; min-height: 0; border-radius: 4px;
+    box-shadow: 1px 2px 4px #52303140, 0 1px 0 #835c4e66;
+  }
+  .sa-photo-open {
+    display: block; width: 100%; height: 100%; overflow: hidden; padding: 0;
+    background: #fff9ef; border: clamp(2px, .43vw, 6px) solid #fff9ef;
+    border-radius: inherit;
+  }
+  .sa-photo-open img { width: 100%; height: 100%; display: block; object-fit: cover; border-radius: 2px; }
+  button.sa-photo-open { touch-action: none; cursor: grab; user-select: none; }
+  .sa-photo[data-drag-source] { opacity: .25; }
+  .sa-photo[data-drop], .sa-grid[data-drop], .sa-corner[data-drop] {
+    outline: 2px solid #a34464; outline-offset: 2px;
+  }
+  .sa-grid[data-drop] { background: #ce849626; border-radius: 4px; }
+  .sa-drag-ghost {
+    position: fixed; z-index: 10; top: 0; left: 0; margin: 0;
+    pointer-events: none; opacity: .91; will-change: transform;
+    box-shadow: 0 6px 15px #52303160;
+  }
+  .sa-album[data-dragging] { cursor: grabbing; user-select: none; }
+  .sa-photo::before, .sa-photo::after {
+    content: ""; position: absolute; z-index: 1; pointer-events: none;
+    width: clamp(7px, 1.15vw, 15px); aspect-ratio: 1;
+    background: linear-gradient(135deg, #eddac4, #9f7865);
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+  }
+  .sa-photo::before { top: -1px; left: -1px; }
+  .sa-photo::after { bottom: -1px; right: -1px; rotate: 180deg; }
+  .sa-photo-remove {
+    position: absolute; top: 1px; right: 1px; z-index: 2; width: 22px; height: 22px;
+    border: 0; border-radius: 50%; padding: 0; opacity: 0;
+    background: #fff9ef; box-shadow: 0 1px 3px #53304344;
+  }
+  .sa-photo:hover .sa-photo-remove, .sa-photo:focus-within .sa-photo-remove { opacity: 1; }
+  .sa-corner {
+    position: absolute; z-index: 3; bottom: 0; left: 0; border: 0; padding: 0;
+    width: clamp(34px, 4.7vw, 63px); height: clamp(24px, 3vw, 41px);
+    border-radius: 0 3px 0 var(--page-radius); background: transparent;
+  }
+  .sa-page[data-side="right"] .sa-corner { left: auto; right: 0; transform: scaleX(-1); }
+  .sa-corner::before {
+    content: ""; position: absolute; bottom: 0; left: 0; pointer-events: none;
+    width: 46%; height: 66%; opacity: .48; transform-origin: bottom left;
+    background: linear-gradient(45deg, #aa8176 4%, #e5cbb6 46%, #fffaef 55%, #d6b4a5 99%);
+    clip-path: polygon(0 0, 100% 100%, 0 100%);
+    transition: transform 140ms ease, opacity 140ms ease;
+  }
+  .sa-corner:is(:hover, :focus-visible, :active)::before { opacity: 1; transform: scale(1.2); }
+  .sa-corner-rest { pointer-events: none; }
+  .sa-corner-rest::before { opacity: .25; }
+
+  /* Cloth cover, foil stamping and bookmark */
+  .sa-cover {
+    width: 50%; left: 50%; border: 1px solid var(--cover-edge); border-radius: 3px 9px 9px 3px;
+    overflow: hidden; padding: 0;
+    background:
+      var(--cover-art, none) center / 100% 100% no-repeat,
+      var(--grain, none),
+      linear-gradient(90deg, #a36a764e, #f9ddd94d 3%, #9d5a6c2c 5%, transparent 10%, #a1586957),
+      radial-gradient(ellipse at 49% 33%, var(--cover-light) 20%, var(--cover-pink) 95%);
+    box-shadow: inset 1px 0 2px #783e5391, inset -2px 1px 3px #fff0dbb5, 2px 4px 6px #75465740;
+  }
+  .sa-cover::before, .sa-cover::after {
+    content: ""; position: absolute; pointer-events: none;
+    border: 1px solid #956c4d9c; border-radius: 3px 6px 6px 3px;
+    box-shadow: 0 1px #fff1cd80, inset 0 1px #fff3d270;
+  }
+  .sa-cover::before { inset: 4% 6% 4% 8%; }
+  .sa-cover::after { inset: calc(4% + 4px) calc(6% + 4px) calc(4% + 4px) calc(8% + 4px); opacity: .64; }
+  .sa-cover-title {
+    position: absolute; z-index: 1; top: 46%; left: 10%; right: 8%; transform: translateY(-50%);
+    display: grid; justify-items: center; gap: clamp(5px, 1.4vw, 13px);
+    color: #614049;
+    text-shadow: 0 1px #fff3e3;
+  }
+  .sa-cover-title .sa-foil {
+    color: var(--foil); font: 400 clamp(18px, 4.1vw, 46px)/1.2 "Songti SC", SimSun, serif;
+    letter-spacing: .16em; padding-left: .16em; white-space: nowrap;
+  }
+  .sa-cover-en { font: 600 clamp(7px, 1.02vw, 12px)/1.4 Georgia, serif; letter-spacing: .24em; }
+  .sa-cover-title::before, .sa-cover-title::after {
+    content: ""; display: block; width: 31%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--foil), transparent);
+  }
+  .sa-cover:focus-visible { outline-offset: 5px !important; }
+
+  /* Double-sided leaf rotating about the spine */
+  .sa-turn {
+    position: absolute; inset: 0 0 0 50%; transform-origin: left center;
+    transform-style: preserve-3d; will-change: transform;
+  }
+  .sa-face {
+    inset: 0; overflow: hidden;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    transform: rotateY(0deg); border-radius: 3px 7px 7px 3px;
+  }
+  .sa-face-back { transform: rotateY(180deg); border-radius: 7px 3px 3px 7px; }
+  .sa-face .sa-page, .sa-face .sa-cover { left: 0; width: 100%; }
+  .sa-face-shade {
+    position: absolute; inset: 0; pointer-events: none; opacity: 0;
+    background: linear-gradient(90deg, #57364764, transparent 50%, #fff2dc9c 80%, #6b495857);
+  }
+  .sa-face-back .sa-face-shade { background: linear-gradient(270deg, #67454a70, transparent 54%, #fff2dfaa 83%, #6b495857); }
+  .sa-cast { pointer-events: none; overflow: hidden; }
+  .sa-cast-shadow {
+    position: absolute; inset: 0; opacity: 0;
+    background: linear-gradient(90deg, transparent 18%, #59374258 48%, #56334177 50%, #59374254 57%, transparent 82%);
+    transform-origin: center;
+  }
+  .sa-footer { min-height: 31px; margin-top: clamp(13px, 2.4vh, 23px); position: relative; }
+  .sa-footer p { margin: 0; padding: 5px 0; color: var(--muted); font-size: clamp(12px, 1.4vw, 15px); letter-spacing: .13em; }
+  .sa-close-book { position: absolute; top: 0; right: max(0px, calc((100% - var(--book-w)) / 2)); }
+  .sa-message { margin: 0; font-size: 13px; color: var(--muted); }
+  .sa-message:empty { display: none; }
+
+  /* Modal photo viewer and editing controls */
+  .sa-lightbox {
+    position: fixed; inset: 0; margin: 0; border: 0; width: 100%; height: 100%;
+    max-width: none; max-height: none; padding: 14px; overflow: auto;
+    background: #261a22f5; color: #fff3e9;
+  }
+  .sa-lightbox::backdrop { background: #261a22; }
+  .sa-lightbox[open] { display: grid; place-items: center; }
+  .sa-view { margin: 0; width: min(100%, 1000px); min-width: 0; }
+  .sa-view-viewport {
+    overflow: hidden; touch-action: none; height: 64vh; height: 64dvh;
+  }
+  .sa-view img {
+    display: block; width: 100%; height: 100%; object-fit: contain;
+    cursor: zoom-in; user-select: none; will-change: transform;
+  }
+  .sa-view-viewport[data-zoomed] img { cursor: grab; }
+  .sa-view-viewport[data-zoomed] img:active { cursor: grabbing; }
+  .sa-view figcaption { padding: 12px 0; overflow-wrap: anywhere; }
+  .sa-view-controls, .sa-size-controls { display: flex; justify-content: center; gap: 7px; flex-wrap: wrap; }
+  .sa-size-controls { margin-bottom: 8px; }
+  .sa-view-controls button, .sa-size-controls button, .sa-view-close, .sa-view-step {
+    border: 1px solid #f3ccd45c; border-radius: 20px; background: #513843e6;
+    color: #fff3e9; min-width: 42px; min-height: 40px; padding: 4px 12px;
+  }
+  .sa-size-controls button[aria-pressed="true"] { background: #f1c6cf; border-color: #f1c6cf; color: #422a34; }
   .sa-view-controls button:disabled { opacity: .45; }
   .sa-view-close, .sa-view-step { position: absolute; }
   .sa-view-close { top: 12px; right: 12px; }
@@ -4567,14 +4899,16 @@ if (JUMP) setTimeout(() => go(Math.max(0, Math.min(chs.length - 1, +JUMP[1] - 1)
 </script>
 
 <script>
-/* ===== 樱花相册：初始数据与挂载 ===== */
+/* ===== 樱花相册：初始数据 + 自由版脚本 + 挂载 ===== */
 window.__SAKURA_TITLE__ = '点滴与你';
-window.__SAKURA_SEED__ = [
-  CONFIG.gallery.slice(0, 4).map(function (g) { return { dataURL: g.src, caption: g.caption }; }),
-  CONFIG.gallery.slice(4, 9).map(function (g) { return { dataURL: g.src, caption: g.caption }; }),
-  []
-];
-
+window.__SAKURA_SEED__ = (function () {
+  var sizes = ['large', 'small', 'small', 'wide', 'medium', 'small', 'wide', 'small', 'medium'];
+  return [
+    CONFIG.gallery.slice(0, 4).map(function (g, i) { return { dataURL: g.src, caption: g.caption, size: sizes[i] }; }),
+    CONFIG.gallery.slice(4, 9).map(function (g, i) { return { dataURL: g.src, caption: g.caption, size: sizes[i + 4] }; }),
+    []
+  ];
+})();
 window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一页，留给以后。', text2: '照片会越来越旧，日子会越来越长。' };
 
 
@@ -4582,10 +4916,13 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
   'use strict';
 
   const PHOTOS_PER_PAGE = 9;
+  const PHOTO_SIZES = { large: [2, 2], medium: [1, 2], wide: [2, 1], small: [1, 1] };
+  const SIZE_ORDER = Object.keys(PHOTO_SIZES);
+  const GRID_COLUMNS = 3;
   const MAX_IMAGE_SIDE = 1200;
   const JPEG_QUALITY = 0.82;
   const FLIP_MS = 520;
-  const COVER_MS = 860;
+  const COVER_MS = 620;
   const STORAGE_KEY = 'sakura-album-photos-v1';
   const STORE = 'album';
 
@@ -4593,7 +4930,7 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
     <section class="sa-album" data-view="closed" aria-label="樱花相册" lang="zh-CN">
       <header class="sa-header">
         <div class="sa-masthead" aria-hidden="true"><span class="sa-mark">❀</span></div>
-        <h1 lang="en">点滴与你</h1>
+        <h1 lang="en">Sakura Album</h1>
       </header>
       <div class="sa-stage">
         <div class="sa-book">
@@ -4613,8 +4950,14 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
       <input class="sa-picker" type="file" accept="image/*" multiple hidden>
       <dialog class="sa-lightbox" aria-label="照片预览">
         <figure class="sa-view">
-          <img draggable="false" alt="">
+          <div class="sa-view-viewport"><img draggable="false" alt=""></div>
           <figcaption aria-live="polite"></figcaption>
+          <div class="sa-size-controls" role="group" aria-label="照片尺寸">
+            <button type="button" data-size="small" aria-pressed="false">小</button>
+            <button type="button" data-size="medium" aria-pressed="false">中</button>
+            <button type="button" data-size="large" aria-pressed="false">大</button>
+            <button type="button" data-size="wide" aria-pressed="false">宽</button>
+          </div>
           <div class="sa-view-controls">
             <button type="button" data-move="-1">← 前移</button>
             <button type="button" data-move="1">后移 →</button>
@@ -4834,18 +5177,23 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
 
   function readRecords(database) {
     return new Promise((resolve, reject) => {
-      const request = database.transaction(STORE).objectStore(STORE).get('photos');
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
+      const transaction = database.transaction(STORE);
+      const store = transaction.objectStore(STORE);
+      const records = store.get('photos');
+      const pageCount = store.get('pageCount');
+      transaction.oncomplete = () => resolve({ records: records.result, pageCount: pageCount.result });
+      transaction.onabort = () => reject(transaction.error);
     });
   }
 
-  function writeRecords(database, records) {
+  function writeRecords(database, { records, pageCount }) {
     return new Promise((resolve, reject) => {
       const transaction = database.transaction(STORE, 'readwrite');
+      const store = transaction.objectStore(STORE);
       transaction.oncomplete = () => resolve();
       transaction.onabort = () => reject(transaction.error);
-      transaction.objectStore(STORE).put(records, 'photos');
+      store.put(records, 'photos');
+      store.put(pageCount, 'pageCount');
     });
   }
 
@@ -4874,6 +5222,46 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
   function decodeImages(...containers) {
     const images = containers.filter(Boolean).flatMap(container => [...container.querySelectorAll('img')]);
     return Promise.allSettled(images.map(image => image.decode()));
+  }
+
+  function photoSize(size) {
+    return SIZE_ORDER.includes(size) ? size : 'medium';
+  }
+
+  function packPhotos(photos) {
+    const memo = new Map();
+
+    function place(index, skyline) {
+      if (index === photos.length) {
+        const rows = Math.max(...skyline);
+        const notch = Math.max(0, Math.min(skyline[0], skyline[2]) - skyline[1]);
+        return { cost: rows * (2 * photos.length + 1) + notch };
+      }
+      const key = `${index}:${skyline.join(',')}`;
+      if (memo.has(key)) return memo.get(key);
+      const [width, height] = PHOTO_SIZES[photos[index].size];
+      let best;
+      // Only place on level ground so a tile never leaves empty cells beneath it.
+      for (let column = 0; column <= GRID_COLUMNS - width; column++) {
+        const row = skyline[column];
+        const base = skyline.slice(column, column + width);
+        if (base.some(cell => cell !== row)) continue;
+        const next = place(index + 1, skyline.slice().fill(row + height, column, column + width));
+        if (!next) continue;
+        if (!best || next.cost < best.cost || (next.cost === best.cost && row < best.row)) {
+          best = { row, column, width, height, cost: next.cost, next };
+        }
+      }
+      memo.set(key, best);
+      return best;
+    }
+
+    let slot = place(0, Array(GRID_COLUMNS).fill(0));
+    return photos.map(() => {
+      const placement = slot;
+      slot = slot.next;
+      return placement;
+    });
   }
 
   /* Album state, rendering, interaction and host entry point */
@@ -4905,9 +5293,11 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
     const message = find('.sa-message');
     const picker = find('.sa-picker');
     const dialog = find('.sa-lightbox');
+    const viewport = find('.sa-view-viewport');
     const viewerImage = dialog.querySelector('img');
     const caption = dialog.querySelector('figcaption');
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const framePhotos = new WeakMap();
 
     let pages = [[], []];
     let spread = 0;
@@ -4920,9 +5310,12 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
     let database;
     let queuedSave = Promise.resolve();
     let warmedPages = [];
+    let drag;
+    let ignoreDragClick = false;
 
     function save() {
-      const snapshot = pages.flatMap((photos, page) => photos.map((photo, order) => ({ ...photo, page, order })));
+      const records = pages.flatMap((photos, page) => photos.map((photo, order) => ({ ...photo, page, order })));
+      const snapshot = { records, pageCount: pages.length };
       // Serialize writes so rapid edits cannot put an older album back on disk.
       queuedSave = queuedSave.then(async () => {
         if (database) {
@@ -4955,6 +5348,7 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
 
     function buildPhoto(photo, interactive) {
       const frame = element('div', 'sa-photo');
+      frame.dataset.size = photo.size;
       const preview = element(interactive ? 'button' : 'div', 'sa-photo-open');
       const image = element('img');
       image.alt = photo.caption;
@@ -4963,7 +5357,10 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
       preview.append(image);
       frame.append(preview);
       if (interactive) {
-        preview.addEventListener('click', () => openPhoto(photo));
+        framePhotos.set(frame, photo);
+        frame.toggleAttribute('data-drag-source', drag?.ghost && drag.photo === photo);
+        preview.addEventListener('click', event => { if (!ignoreDragClick || !event.detail) openPhoto(photo); });
+        preview.addEventListener('pointerdown', event => startDrag(event, photo, frame));
         const remove = element('button', 'sa-photo-remove', '×');
         remove.setAttribute('aria-label', `移除 ${photo.caption}`);
         remove.addEventListener('click', () => removePhoto(photo));
@@ -4977,25 +5374,37 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
       const side = index % 2 === 0 ? 'left' : 'right';
       const photos = pages[index] || [];
       page.dataset.side = side;
+      page.dataset.page = index;
       page.setAttribute('aria-label', `第 ${index + 1} 页`);
       const inner = element('div', 'sa-page-inner');
       const heading = element('div', 'sa-page-head');
       const flower = element('span', '', '❀');
       flower.setAttribute('aria-hidden', 'true');
       const add = element(interactive ? 'button' : 'div', 'sa-add', '＋ 添加照片');
+      const tidy = element(interactive ? 'button' : 'div', 'sa-tidy', '整理');
       if (interactive) {
         add.disabled = importing;
+        tidy.disabled = importing || photos.length < 2;
         add.addEventListener('click', () => {
           if (turning || importing) return;
           pickPage = index;
           picker.click();
         });
+        tidy.addEventListener('click', () => tidyPage(index));
       }
-      heading.append(flower, add);
+      const pageTools = element('div', 'sa-page-tools');
+      pageTools.append(tidy, add);
+      heading.append(flower, pageTools);
       const grid = element('div', 'sa-grid');
-      grid.style.setProperty('--columns', photos.length <= 1 ? 1 : photos.length <= 4 ? 2 : 3);
       if (photos.length) {
-        grid.append(...photos.map(photo => buildPhoto(photo, interactive)));
+        const slots = packPhotos(photos);
+        grid.style.setProperty('--rows', Math.max(4, ...slots.map(slot => slot.row + slot.height)));
+        grid.append(...photos.map((photo, i) => {
+          const frame = buildPhoto(photo, interactive);
+          const { row, column, width, height } = slots[i];
+          frame.style.gridArea = `${row + 1} / ${column + 1} / span ${height} / span ${width}`;
+          return frame;
+        }));
       } else {
         const note = window.__SAKURA_ENDNOTE__;
         const isLast = note && typeof note.page === 'number' ? index === note.page : index >= pages.length - 1;
@@ -5015,6 +5424,7 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
       const canTurn = target >= 0 && target < pages.length;
       const corner = element(interactive && canTurn ? 'button' : 'div', canTurn ? 'sa-corner' : 'sa-corner sa-corner-rest');
       if (interactive && canTurn) {
+        corner.dataset.turn = target;
         corner.setAttribute('aria-label', side === 'left' ? '翻到上一页' : '翻到下一页');
         corner.addEventListener('click', () => turnTo(target));
       } else corner.setAttribute('aria-hidden', 'true');
@@ -5038,6 +5448,152 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
       warmNearby();
     }
 
+    function reflow(movedPhoto, origin) {
+      const oldRects = new Map();
+      if (!reducedMotion.matches) {
+        for (const frame of leaves.querySelectorAll('.sa-photo')) {
+          oldRects.set(framePhotos.get(frame), frame.getBoundingClientRect());
+        }
+        if (origin) oldRects.set(movedPhoto, origin);
+      }
+      render();
+      const frames = [...leaves.querySelectorAll('.sa-photo')];
+      if (oldRects.size) {
+        const rects = frames.map(frame => frame.getBoundingClientRect());
+        frames.forEach((frame, index) => {
+          const previous = oldRects.get(framePhotos.get(frame));
+          if (!previous) return;
+          const current = rects[index];
+          const x = previous.left - current.left;
+          const y = previous.top - current.top;
+          const width = previous.width / current.width;
+          const height = previous.height / current.height;
+          if (!Number.isFinite(width + height) || (!x && !y && width === 1 && height === 1)) return;
+          frame.animate([
+            { transform: `translate3d(${x}px, ${y}px, 0) scale(${width}, ${height})`, transformOrigin: 'top left' },
+            { transform: 'none', transformOrigin: 'top left' }
+          ], { duration: 240, easing: 'cubic-bezier(.2,.74,.24,1)' });
+        });
+      }
+      return frames.find(frame => framePhotos.get(frame) === movedPhoto);
+    }
+
+    function tidyPage(index) {
+      if (turning || importing || drag) return;
+      pages[index].sort((a, b) => SIZE_ORDER.indexOf(a.size) - SIZE_ORDER.indexOf(b.size));
+      save();
+      reflow();
+      leaves.querySelector(`[data-page="${index}"] .sa-tidy`).focus({ preventScroll: true });
+    }
+
+    function startDrag(event, photo, frame) {
+      if (turning || importing || drag || !event.isPrimary || event.button !== 0) return;
+      drag = { photo, frame, id: event.pointerId, startX: event.clientX, startY: event.clientY, raf: 0 };
+    }
+
+    function dropTarget(x, y, photo) {
+      const hit = document.elementFromPoint(x, y);
+      if (!hit || !leaves.contains(hit)) return null;
+      const corner = hit.closest('[data-turn]');
+      if (corner) return corner;
+      const grid = hit.closest('.sa-grid');
+      if (!grid) return null;
+      const frame = hit.closest('.sa-photo');
+      if (frame) return framePhotos.get(frame) === photo ? null : frame;
+      const target = pages[Number(grid.closest('.sa-page').dataset.page)];
+      return target.length < PHOTOS_PER_PAGE || target.includes(photo) ? grid : null;
+    }
+
+    function markDrop(state, target) {
+      if (state.target === target) return;
+      state.target?.removeAttribute('data-drop');
+      clearTimeout(state.turnTimer);
+      state.target = target;
+      target?.setAttribute('data-drop', '');
+      if (target?.dataset.turn !== undefined) {
+        state.turnTimer = setTimeout(async () => {
+          markDrop(state, null);
+          await turnTo(Number(target.dataset.turn));
+          if (drag !== state) return;
+          const next = dropTarget(state.x, state.y, state.photo);
+          if (next?.dataset.turn === undefined) markDrop(state, next);
+        }, 650);
+      }
+    }
+
+    function paintDrag(state) {
+      state.raf = 0;
+      const target = turning ? null : dropTarget(state.x, state.y, state.photo);
+      state.ghost.style.transform = `translate3d(${state.x - state.offsetX}px, ${state.y - state.offsetY}px, 0)`;
+      markDrop(state, target);
+    }
+
+    root.addEventListener('pointerdown', () => { ignoreDragClick = false; }, true);
+    root.addEventListener('pointermove', event => {
+      const state = drag;
+      if (!state || event.pointerId !== state.id) return;
+      state.x = event.clientX;
+      state.y = event.clientY;
+      if (!state.ghost) {
+        if (Math.hypot(state.x - state.startX, state.y - state.startY) < 7) return;
+        const rect = state.frame.getBoundingClientRect();
+        state.offsetX = state.startX - rect.left;
+        state.offsetY = state.startY - rect.top;
+        state.ghost = state.frame.cloneNode(true);
+        state.ghost.classList.add('sa-drag-ghost');
+        state.ghost.inert = true;
+        state.ghost.setAttribute('aria-hidden', 'true');
+        state.ghost.style.width = `${rect.width}px`;
+        state.ghost.style.height = `${rect.height}px`;
+        state.frame.setAttribute('data-drag-source', '');
+        root.setAttribute('data-dragging', '');
+        root.setPointerCapture(state.id);
+        root.append(state.ghost);
+        paintDrag(state);
+      } else if (!state.raf) {
+        state.raf = requestAnimationFrame(() => paintDrag(state));
+      }
+    });
+
+    function finishDrag(event) {
+      const state = drag;
+      if (!state || event.pointerId !== state.id) return;
+      drag = null;
+      if (!state.ghost) return;
+      const target = event.type === 'pointerup' && !turning
+        ? dropTarget(event.clientX, event.clientY, state.photo) : null;
+      const origin = target && { left: event.clientX - state.offsetX, top: event.clientY - state.offsetY,
+        width: state.ghost.offsetWidth, height: state.ghost.offsetHeight };
+      cancelAnimationFrame(state.raf);
+      markDrop(state, null);
+      state.ghost.remove();
+      root.removeAttribute('data-dragging');
+      leaves.querySelector('[data-drag-source]')?.removeAttribute('data-drag-source');
+      if (root.hasPointerCapture(state.id)) root.releasePointerCapture(state.id);
+      ignoreDragClick = true;
+      if (!target || target.dataset.turn !== undefined) return;
+
+      const from = pages.find(photos => photos.includes(state.photo));
+      const to = pages[Number(target.closest('.sa-page').dataset.page)];
+      const index = from.indexOf(state.photo);
+      const other = framePhotos.get(target);
+      const slot = other ? to.indexOf(other) : to.length;
+      if (from !== to && to.length >= PHOTOS_PER_PAGE) {
+        from[index] = other;
+        to[slot] = state.photo;
+      } else {
+        from.splice(index, 1);
+        to.splice(slot, 0, state.photo);
+      }
+      save();
+      reflow(state.photo, origin)?.querySelector('.sa-photo-open').focus({ preventScroll: true, focusVisible: false });
+    }
+
+    root.addEventListener('pointerup', finishDrag);
+    root.addEventListener('pointercancel', finishDrag);
+    root.addEventListener('lostpointercapture', event => { if (event.target === root) finishDrag(event); });
+    root.addEventListener('pointerleave', event => { if (!drag?.ghost) finishDrag(event); });
+
     function face(content, back) {
       const side = element('div', back ? 'sa-face sa-face-back' : 'sa-face');
       const shade = element('div', 'sa-face-shade');
@@ -5051,7 +5607,7 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
       turnLayer.replaceChildren(sheet);
       const timing = {
         duration: cover ? COVER_MS : FLIP_MS,
-        easing: 'cubic-bezier(.33,.02,.16,1)',
+        easing: 'cubic-bezier(.43,.09,.28,1)',
         direction: reverse ? 'reverse' : 'normal',
         fill: 'both'
       };
@@ -5102,7 +5658,7 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
     }
 
     async function changeCover(open) {
-      if (!ready || turning || isOpen === open) return;
+      if (!ready || turning || drag || isOpen === open) return;
       turning = true;
       if (!reducedMotion.matches) {
         await playTurn(makeCover(false), makePage(spread, false), [makePage(spread + 1, false)], !open, true);
@@ -5125,6 +5681,7 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
       spread = target;
       turning = false;
       render();
+      if (drag?.ghost) return;
       const side = reverse ? 'left' : 'right';
       const page = leaves.querySelector(`[data-side="${side}"]`);
       const focusTarget = page.querySelector('button.sa-corner') || page.querySelector('.sa-add');
@@ -5153,7 +5710,7 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
       let failed = 0;
       // Decode files sequentially to limit memory use on phones.
       for (const file of files) {
-        try { imported.push(await compress(file)); }
+        try { imported.push({ ...await compress(file), size: 'medium' }); }
         catch { failed++; }
       }
       if (imported.length) {
@@ -5170,12 +5727,18 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
       return { list, index: list.indexOf(activePhoto) };
     }
 
-    function showPhoto() {
+    function showPhoto(reset = true) {
       const { list, index } = currentPosition();
       spread = pages.findIndex(photos => photos.includes(activePhoto)) & ~1;
-      viewerImage.src = activePhoto.dataURL;
+      if (reset) {
+        resetGesture();
+        viewerImage.src = activePhoto.dataURL;
+      }
       viewerImage.alt = activePhoto.caption;
       caption.textContent = `${activePhoto.caption} · ${index + 1} / ${list.length}`;
+      dialog.querySelectorAll('[data-size]').forEach(control => {
+        control.setAttribute('aria-pressed', String(control.dataset.size === activePhoto.size));
+      });
       dialog.querySelectorAll('[data-step], [data-move]').forEach(control => {
         const target = index + Number(control.dataset.step || control.dataset.move);
         control.disabled = target < 0 || target >= list.length;
@@ -5207,7 +5770,7 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
       from[originIndex] = other;
       to[targetIndex] = activePhoto;
       save();
-      showPhoto();
+      showPhoto(false);
     }
 
     function removePhoto(photo) {
@@ -5233,15 +5796,22 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
     dialog.querySelectorAll('[data-move]').forEach(control => {
       control.addEventListener('click', () => movePhoto(Number(control.dataset.move)));
     });
+    dialog.querySelectorAll('[data-size]').forEach(control => {
+      control.addEventListener('click', () => {
+        if (!activePhoto || activePhoto.size === control.dataset.size) return;
+        activePhoto.size = control.dataset.size;
+        save();
+        showPhoto(false);
+      });
+    });
     dialog.querySelector('.sa-view-remove').addEventListener('click', () => removePhoto(activePhoto));
     dialog.querySelector('.sa-view-close').addEventListener('click', () => dialog.close());
     dialog.addEventListener('close', () => {
-      const index = (pages[spread] || []).concat(pages[spread + 1] || []).indexOf(activePhoto);
+      const photo = activePhoto;
       activePhoto = null;
+      resetGesture();
       viewerImage.removeAttribute('src');
-      render();
-      const controls = leaves.querySelectorAll('.sa-photo-open');
-      const focusTarget = controls[index] || leaves.querySelector('.sa-add');
+      const focusTarget = reflow(photo)?.querySelector('.sa-photo-open') || leaves.querySelector('.sa-add');
       focusTarget?.focus({ preventScroll: true, focusVisible: false });
     });
     dialog.addEventListener('keydown', event => {
@@ -5250,53 +5820,150 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
       stepPhoto(event.key === 'ArrowLeft' ? -1 : 1);
     });
 
-    let touchStart;
-    let lastSwipe = -Infinity;
-    dialog.addEventListener('touchstart', event => {
-      touchStart = event.touches.length === 1 && !event.target.closest('button') ? event.touches[0] : null;
-    }, { passive: true });
-    dialog.addEventListener('touchend', event => {
-      if (!touchStart) return;
-      const touch = event.changedTouches[0];
-      const x = touch.clientX - touchStart.clientX;
-      const y = touch.clientY - touchStart.clientY;
-      touchStart = null;
-      if (Math.abs(x) < 40 || Math.abs(x) < Math.abs(y) * 1.45) return;
-      lastSwipe = performance.now();
-      stepPhoto(x < 0 ? 1 : -1);
-    }, { passive: true });
-    dialog.addEventListener('touchcancel', () => { touchStart = null; }, { passive: true });
+    let zoom = 1;
+    let panX = 0;
+    let panY = 0;
+    let gesture;
+    let lastTap;
+    const pointers = new Map();
+
+    function setZoom(scale, x, y) {
+      const width = viewport.clientWidth;
+      const height = viewport.clientHeight;
+      const ratio = viewerImage.naturalWidth / viewerImage.naturalHeight || width / height || 1;
+      const limitX = Math.max(0, (Math.min(width, height * ratio) * scale - width) / 2);
+      const limitY = Math.max(0, (Math.min(height, width / ratio) * scale - height) / 2);
+      zoom = scale;
+      panX = scale === 1 ? 0 : Math.min(limitX, Math.max(-limitX, x));
+      panY = scale === 1 ? 0 : Math.min(limitY, Math.max(-limitY, y));
+      viewerImage.style.transform = scale === 1 ? '' : `translate3d(${panX}px, ${panY}px, 0) scale(${zoom})`;
+      viewport.toggleAttribute('data-zoomed', scale > 1);
+    }
+
+    function resetGesture() {
+      pointers.clear();
+      gesture = lastTap = null;
+      setZoom(1, 0, 0);
+    }
+
+    function zoomAt(scale, before, after = before) {
+      const rect = viewport.getBoundingClientRect();
+      const nextZoom = Math.min(4, Math.max(1, scale));
+      const ratio = nextZoom / zoom;
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      setZoom(nextZoom, after.x - centerX - (before.x - centerX - panX) * ratio,
+        after.y - centerY - (before.y - centerY - panY) * ratio);
+    }
+
+    const point = event => ({ x: event.clientX, y: event.clientY });
+    const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+
+    function pinch() {
+      const [a, b] = pointers.values();
+      return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, span: distance(a, b) };
+    }
+
+    viewport.addEventListener('wheel', event => {
+      event.preventDefault();
+      const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? viewport.clientHeight : 1;
+      zoomAt(zoom * Math.exp(-event.deltaY * unit * .0025), point(event));
+    }, { passive: false });
+
+    viewport.addEventListener('pointerdown', event => {
+      if (event.button !== 0 || pointers.size >= 2) return;
+      const position = point(event);
+      if (!pointers.size) gesture = { start: position, swipable: zoom === 1, moved: false };
+      else {
+        gesture.swipable = false;
+        gesture.moved = true;
+        lastTap = null;
+      }
+      pointers.set(event.pointerId, position);
+      viewport.setPointerCapture(event.pointerId);
+    });
+
+    viewport.addEventListener('pointermove', event => {
+      const previous = pointers.get(event.pointerId);
+      if (!previous) return;
+      const position = point(event);
+      const before = pointers.size === 2 ? pinch() : null;
+      pointers.set(event.pointerId, position);
+      if (before) {
+        const after = pinch();
+        zoomAt(zoom * Math.max(1, after.span) / Math.max(1, before.span), before, after);
+      } else if (zoom > 1) {
+        setZoom(zoom, panX + position.x - previous.x, panY + position.y - previous.y);
+      }
+      if (distance(position, gesture.start) > 12) gesture.moved = true;
+    });
+
+    function finishGesture(event) {
+      if (!pointers.delete(event.pointerId) || pointers.size) return;
+      const completed = gesture;
+      gesture = null;
+      if (event.type !== 'pointerup') {
+        lastTap = null;
+        return;
+      }
+      const position = point(event);
+      const x = position.x - completed.start.x;
+      const y = position.y - completed.start.y;
+      if (event.pointerType !== 'mouse' && completed.swipable && zoom === 1 &&
+          Math.abs(x) >= 40 && Math.abs(x) >= Math.abs(y) * 1.45) {
+        lastTap = null;
+        stepPhoto(x < 0 ? 1 : -1);
+      } else if (event.pointerType === 'touch' && !completed.moved && distance(position, completed.start) <= 12) {
+        const now = performance.now();
+        if (lastTap && now - lastTap.time < 330 && distance(position, lastTap) < 26) {
+          setZoom(1, 0, 0);
+          lastTap = null;
+        } else lastTap = { ...position, time: now };
+      } else lastTap = null;
+    }
+
+    viewport.addEventListener('pointerup', finishGesture);
+    viewport.addEventListener('pointercancel', finishGesture);
+    viewport.addEventListener('lostpointercapture', finishGesture);
+    viewport.addEventListener('dblclick', () => setZoom(1, 0, 0));
+    new ResizeObserver(() => { if (zoom > 1) setZoom(zoom, panX, panY); }).observe(viewport);
     dialog.addEventListener('click', event => {
-      if (!event.target.closest('button') && performance.now() - lastSwipe > 350) dialog.close();
+      if (event.target === dialog) dialog.close();
     });
     closeBook.addEventListener('click', () => changeCover(false));
 
     async function initialize() {
       render();
-      let records;
+      let saved;
       // A fallback snapshot may hold newer edits from an earlier IndexedDB failure.
       try {
         const backup = localStorage.getItem(STORAGE_KEY);
-        if (backup !== null) records = JSON.parse(backup);
+        if (backup !== null) {
+          const parsed = JSON.parse(backup);
+          saved = Array.isArray(parsed) ? { records: parsed } : parsed;
+        }
       } catch { /* IndexedDB remains available in most browsers. */ }
       try {
         database = await openDatabase();
-        if (!Array.isArray(records)) records = await readRecords(database);
+        if (!Array.isArray(saved?.records)) saved = await readRecords(database);
       } catch { /* Use the localStorage snapshot or the starter prints. */ }
+      const { records, pageCount } = saved || {};
       if (Array.isArray(records)) {
+        while (pages.length < pageCount) pages.push([]);
         records.sort((a, b) => a.page - b.page || a.order - b.order);
-        for (const { page, dataURL, caption: photoCaption } of records) {
+        for (const { page, dataURL, caption: photoCaption, size } of records) {
           while (pages.length <= page) pages.push([]);
-          pages[page].push({ dataURL, caption: photoCaption });
+          pages[page].push({ dataURL, caption: photoCaption, size: photoSize(size) });
         }
-        if (pages.length % 2) pages.push([]);
       } else if (Array.isArray(window.__SAKURA_SEED__) && window.__SAKURA_SEED__.length) {
         /* 宿主页注入的初始相册：按页分组 */
-        pages = window.__SAKURA_SEED__.map(page => page.map(photo => ({ ...photo })));
+        pages = window.__SAKURA_SEED__.map(page => page.map(photo => ({ ...photo, size: photoSize(photo.size) })));
       } else {
-        const samples = Array.from({ length: 9 }, (_, index) => samplePhoto(index));
+        const sizes = ['large', 'small', 'small', 'wide', 'wide', 'medium', 'small', 'small', 'medium'];
+        const samples = sizes.map((size, index) => ({ ...samplePhoto(index), size }));
         pages = [samples.slice(0, 4), samples.slice(4)];
       }
+      if (pages.length % 2) pages.push([]);
       await decodeImages(makePage(0, false), makePage(1, false));
       ready = true;
       render();
@@ -5315,7 +5982,10 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
   function mountAlbum() {
     var host = document.getElementById('sakuraAlbum');
     if (!host || !window.SakuraAlbum) return;
-    window.SakuraAlbum.mount(host);
+    if (!host.dataset.mounted) {
+      host.dataset.mounted = '1';
+      window.SakuraAlbum.mount(host);
+    }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountAlbum);
   else mountAlbum();
@@ -5508,7 +6178,7 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
     wrap.classList.add('open');
     try { Sfx.blip(420, .12, 'sine', .05); setTimeout(function(){ Sfx.blip(620,.14,'sine',.04); }, 220); } catch (e) {}
     setTimeout(function () {
-      wrap.classList.add('gone');
+      wrap.classList.add('under');
       inner.classList.remove('is-hidden');
       requestAnimationFrame(function () { inner.classList.add('shown'); });
     }, 520);
@@ -5521,7 +6191,7 @@ window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一�
     if (typeof cur === 'undefined' || typeof IDX === 'undefined') return;
     if (cur !== IDX.letter && opened) {
       opened = false;
-      wrap.classList.remove('open', 'gone');
+      wrap.classList.remove('open', 'under');
       inner.classList.add('is-hidden');
       inner.classList.remove('shown');
     }
