@@ -270,6 +270,10 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
   transition:filter .4s ease}
 .gate-hint{margin:28px 0 0; font-size:14px; color:var(--inkD-soft)}
 .blink{display:inline-block; animation:blink 1.1s steps(2,end) infinite; color:var(--gold)}
+.gate-hint{animation:gatePulse 1.7s ease-in-out infinite}
+@keyframes gatePulse{0%,100%{opacity:.62; transform:translateY(0)}50%{opacity:1; transform:translateY(-3px)}}
+.gate-shake{animation:gateShake 3.2s ease-in-out infinite}
+@keyframes gateShake{0%,88%,100%{transform:rotate(0)}92%{transform:rotate(-2.2deg)}96%{transform:rotate(2.2deg)}}
 @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
 .gate-foot{position:absolute; left:0; right:0; bottom:18px; text-align:center;
   font-family:var(--mono); font-size:10px; letter-spacing:.34em; color:var(--inkD-soft); opacity:.65}
@@ -304,7 +308,7 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
 
 /* ---------- 11 祝福语飘浮 ---------- */
 .wish-stream{
-  position:absolute; inset:96px 0 58% 0; overflow:hidden; z-index:1; pointer-events:none;
+  position:absolute; inset:84px 0 52% 0; overflow:hidden; z-index:1; pointer-events:none;
   -webkit-mask-image:linear-gradient(to top, transparent 4%, #000 34%);
   mask-image:linear-gradient(to top, transparent 4%, #000 34%);
 }
@@ -658,60 +662,6 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
 .crowd .rabbit:nth-child(3n){animation-delay:-1.2s}
 
 
-/* ---------- 相册本子 ---------- */
-.book{position:relative; width:min(560px,88vw); margin:16px auto 0; perspective:1400px}
-.book-body{position:relative; height:min(430px,46vh); border:4px solid var(--edge); background:#fdf8f2;
-  box-shadow:10px 10px 0 rgba(0,0,0,.32); overflow:hidden}
-.book-pages{position:absolute; inset:0}
-.page{position:absolute; inset:0; display:grid; grid-template-rows:1fr auto; padding:12px;
-  opacity:0; transition:opacity .3s; pointer-events:none}
-.page.on{opacity:1; pointer-events:auto}
-.page-photo{position:relative; overflow:hidden; border:4px solid #fff;
-  box-shadow:0 0 0 3px rgba(58,35,64,.12); background:#f6ecef}
-.page-bg{
-  position:absolute; inset:-24px; z-index:0;
-  background-size:cover; background-position:center;
-  filter:blur(16px) brightness(.6) saturate(1.15);
-  transform:scale(1.12);
-}
-.page-photo::after{
-  content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
-  background:radial-gradient(120% 100% at 50% 50%,transparent 58%,rgba(0,0,0,.3) 100%);
-}
-.page-photo img{
-  position:absolute; inset:0; z-index:2; width:100%; height:100%;
-  object-fit:contain; object-position:center;
-  filter:drop-shadow(0 10px 18px rgba(0,0,0,.35));
-}
-.page-photo img.imgfail{display:none}
-.page-photo.has .ph{display:none}
-.page-photo .ph{position:absolute; inset:0; z-index:3; display:grid; place-items:center;
-  font-family:var(--mono); font-size:11px; color:#c78aa9; letter-spacing:.12em}
-.page figcaption{margin-top:8px; font-family:var(--mono); font-size:11px; color:#9a6f88;
-  text-align:center; letter-spacing:.06em}
-.book-cover{position:absolute; inset:0; z-index:3; display:flex; flex-direction:column;
-  align-items:center; justify-content:center; gap:9px; cursor:pointer;
-  background:linear-gradient(155deg,#ff9dc4,#ff5f9e 55%,#dd3f7d);
-  border:4px solid var(--edge); transform-origin:left center;
-  transition:transform .9s cubic-bezier(.2,.7,.2,1), opacity .3s .62s;
-  box-shadow:inset 0 0 0 8px rgba(255,255,255,.26)}
-.book.open .book-cover{transform:rotateY(-172deg); opacity:0; pointer-events:none; visibility:hidden; transition:transform .9s cubic-bezier(.2,.7,.2,1), opacity .3s .62s, visibility 0s .9s}
-.book-cover::before{
-  content:""; position:absolute; left:14px; top:0; bottom:0; width:16px;
-  background:linear-gradient(90deg,rgba(0,0,0,.22),rgba(0,0,0,0)); border-right:3px solid rgba(0,0,0,.18);
-}
-.bc-star{font-size:18px; color:#fff; opacity:.9}
-.bc-title{font-family:var(--px); font-size:26px; color:#fff; letter-spacing:.04em;
-  text-shadow:3px 3px 0 rgba(0,0,0,.2)}
-.bc-line{width:64px; height:4px; background:rgba(255,255,255,.75)}
-.bc-sub{font-family:var(--mono); font-size:10.5px; letter-spacing:.24em; color:rgba(255,255,255,.94)}
-.book-nav{display:flex; align-items:center; justify-content:center; gap:16px; margin-top:12px}
-.bnav{width:36px; height:30px; border:3px solid var(--edge); background:#fff; color:var(--inkL);
-  font-family:var(--mono); font-size:14px; line-height:1; box-shadow:3px 3px 0 rgba(58,35,64,.18)}
-.bnav:hover{background:var(--pink3)}
-#bookIdx{font-family:var(--mono); font-size:11px; color:#9a6f88; letter-spacing:.1em;
-  min-width:56px; text-align:center}
-
 /* ---------- 结尾：山坡 / 月亮 / 流星 / 两只小熊 ---------- */
 .finale-scene{overflow:hidden}
 .hill{position:absolute; left:-2%; right:-2%; bottom:0; z-index:1}
@@ -754,6 +704,19 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
   letter-spacing:.1em; color:rgba(198,204,236,.6)}
 
 
+.days-note{margin:10px 0 0; font-family:var(--mono); font-size:clamp(11px,2.9vw,13px);
+  letter-spacing:.06em; color:var(--ink-soft,#9aa3c9)}
+/* ===== ⑪ 结尾倒计时牌 ===== */
+.bd-card{width:min(320px,84vw); margin:16px auto 0; perspective:900px; cursor:pointer}
+.bd-inner{position:relative; transform-style:preserve-3d; transition:transform .7s cubic-bezier(.4,.05,.3,1)}
+.bd-card.flipped .bd-inner{transform:rotateY(180deg)}
+.bd-face{backface-visibility:hidden; border:2px solid rgba(255,255,255,.22); border-radius:6px;
+  padding:12px 16px; font-family:var(--px); letter-spacing:.08em; text-align:center;
+  background:linear-gradient(160deg,rgba(255,255,255,.13),rgba(255,255,255,.04))}
+.bd-front{font-size:clamp(12px,3.2vw,14px); color:#dfe4ff}
+.bd-back{position:absolute; inset:0; transform:rotateY(180deg);
+  font-size:clamp(15px,4.2vw,19px); color:#fff3f8;
+  background:linear-gradient(160deg,rgba(255,120,170,.30),rgba(120,90,255,.22))}
 /* ---------- 第 8 屏：抱抱 ---------- */
 .hug-row{cursor:pointer; touch-action:manipulation; position:relative}
 .hug-hearts{position:absolute; left:50%; top:54%; width:0; height:0; pointer-events:none; z-index:5}
@@ -901,6 +864,314 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.001s!important; animation-iteration-count:1!important; transition-duration:.001s!important}
 }
+
+/* ===== ⑦ 备份按钮 ===== */
+.album-tools{position:absolute; left:0; right:0; bottom:6px; z-index:7; display:flex;
+  gap:10px; justify-content:center; align-items:center; font-family:var(--mono); font-size:11px}
+.album-tools button{border:0; padding:6px 12px; border-radius:2px; cursor:pointer;
+  background:rgba(255,255,255,.82); color:#8b5a68; box-shadow:0 1px 3px rgba(120,70,80,.25)}
+.album-tools button:active{transform:translateY(1px)}
+.album-tip{color:#8b5a68; opacity:.85}
+/* ===== ⑨ 封面樱花飘落 ===== */
+.petal-sky{position:absolute; inset:0; pointer-events:none; z-index:6; overflow:hidden}
+.petal{position:absolute; top:-6%; width:12px; height:12px; opacity:0;
+  background:radial-gradient(circle at 32% 28%, #ffe3ef, #f9b6cf 62%, #e88aa9);
+  border-radius:60% 40% 55% 45%/55% 60% 40% 45%;
+  animation:petalFall linear infinite}
+@keyframes petalFall{
+  0%{opacity:0; transform:translate3d(0,-10vh,0) rotate(0deg)}
+  12%{opacity:.95}
+  100%{opacity:0; transform:translate3d(60px,105vh,0) rotate(420deg)}
+}
+/* ===== 樱花相册（Codex 生成） ===== */
+.sa-mount{width:100%; height:100%; align-self:stretch; flex:1 1 auto; display:flex}
+.sa-mount > .sa-album{width:100%; min-height:0; height:100%; padding:6px 6px 4px; align-content:stretch; grid-template-rows:auto minmax(0,1fr)}
+.sa-mount .sa-header{flex:0 0 auto}
+.sa-mount .sa-stage{width:100%; height:auto; min-height:0; flex:1 1 auto}
+
+
+  /* Tabletop, album dimensions and shared controls */
+  body[data-sakura-standalone] { margin: 0; background: #f4ebe7; }
+  .sa-album, .sa-album * { box-sizing: border-box; }
+  .sa-album {
+    --cover-light: #f6dfdd;
+    --cover-pink: #e7b8bd;
+    --cover-edge: #ad727c;
+    --foil: #9c714b;
+    --ink: #593a42;
+    --muted: #79565c;
+    --paper: #faf3e8;
+    --page-radius: 5px;
+    --book-w: min(100%, 1020px, max(700px, 128svh));
+    color: var(--ink);
+    font-family: "Songti SC", SimSun, "Noto Serif CJK SC", Georgia, serif;
+    text-align: center;
+    isolation: isolate;
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(16px, 3.7vh, 38px);
+    padding: 22px clamp(12px, 4vw, 78px) 20px;
+    overflow: hidden;
+    background:
+      var(--grain, none),
+      radial-gradient(ellipse at 48% 21%, #fff9f1 1%, #f6ece6 52%, #e9d5d4 100%);
+  }
+  .sa-album button, .sa-album input { font: inherit; }
+  .sa-album button { color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .sa-album button:focus-visible { outline: 2px solid #a34c69; outline-offset: 3px; }
+  .sa-album button:disabled { cursor: default; }
+  .sa-album [hidden] { display: none !important; }
+  .sa-header { position: relative; width: var(--book-w); margin: 0 auto; }
+  .sa-masthead { display: flex; align-items: center; justify-content: center; gap: 11px; }
+  .sa-masthead::before, .sa-masthead::after {
+    content: ""; height: 1px; width: clamp(15px, 5vw, 56px); background: #c4a09a;
+  }
+  .sa-mark { font-size: 22px; color: #a66072; line-height: 1; }
+  .sa-header h1 { margin: 5px 0 0; font: 400 italic clamp(24px, 3.4vw, 42px)/1.1 Georgia, serif; }
+  .sa-stage {
+    position: relative;
+    width: var(--book-w);
+    height: clamp(272px, 73vw, min(550px, 64svh));
+    margin: 0 auto;
+    perspective: 1550px;
+    perspective-origin: 50% 44%;
+  }
+  .sa-book {
+    position: absolute; inset: 0;
+    transform-style: preserve-3d;
+    transform: translateX(0);
+  }
+  .sa-album[data-view="closed"] .sa-book { transform: translateX(-25%); }
+  .sa-leaves, .sa-stack, .sa-cast, .sa-desk-shadow, .sa-turn-layer { position: absolute; inset: 0; }
+  .sa-turn-layer { transform-style: preserve-3d; pointer-events: none; }
+  .sa-desk-shadow {
+    top: 8%; bottom: -14px; left: 1%; right: 1%; border-radius: 10% 10% 7% 7%;
+    background: #764e53; opacity: .22; filter: blur(21px); pointer-events: none;
+  }
+  .sa-album[data-view="closed"] .sa-desk-shadow { left: 50%; }
+  .sa-stack {
+    inset: 5px -4px -9px;
+    border: 1px solid #aa7679;
+    border-bottom: 3px solid #9b626a;
+    border-radius: 7px 11px 9px 9px;
+    background: var(--grain, none), repeating-linear-gradient(180deg, #ead7c6 0 2px, #c9ab9a 2px 3px);
+    box-shadow: 0 6px 11px #58372d30, 0 2px 2px #5d3a4433;
+  }
+  .sa-album[data-view="closed"] .sa-stack { left: 50%; }
+  .sa-stack, .sa-desk-shadow { transform-origin: right center; }
+  .sa-ribbon-track { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+  .sa-album[data-view="closed"] .sa-ribbon-track { transform: translateX(30%); }
+  .sa-ribbon {
+    position: absolute; left: 55%; top: calc(100% - 4px);
+    width: clamp(14px, 2.7vw, 29px); height: clamp(28px, 5vw, 51px);
+    transform: rotate(-10deg); transform-origin: top;
+    background: linear-gradient(90deg, #ad6479, #c78194 22%, #d38d9d 46%, #a8586f 95%);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 49% 79%, 0 100%);
+  }
+
+  /* Endpapers, printed details and the two sides of each page */
+  .sa-page, .sa-cover, .sa-face { position: absolute; top: 0; bottom: 0; }
+  .sa-page {
+    --gutter: linear-gradient(to left, #6c403a35, #9b665b12 3%, transparent 12%);
+    width: 50%; left: 0;
+    border-radius: var(--page-radius) 2px 1px var(--page-radius);
+    border: 1px solid #c8a695;
+    border-right: 0;
+    background-color: var(--paper);
+    background-image: var(--grain, none), var(--gutter), linear-gradient(138deg, #fffaf0, #f2e5d7);
+    box-shadow: inset 0 2px 1px #fff9, inset 0 -2px 2px #a87a6333;
+    overflow: hidden;
+  }
+  .sa-page[data-side="right"] {
+    --gutter: linear-gradient(to right, #67413c44, #9b665b18 4%, transparent 12%);
+    left: 50%;
+    border-radius: 2px var(--page-radius) var(--page-radius) 1px;
+    border-right: 1px solid #c8a695;
+  }
+  .sa-page::before {
+    content: ""; position: absolute; pointer-events: none; inset: 0;
+    background: var(--endpaper-art, none) no-repeat left bottom / 70% auto;
+    opacity: .35;
+  }
+  .sa-page[data-side="right"]::before { transform: scaleX(-1); }
+  .sa-page-inner {
+    position: absolute; inset: clamp(10px, 2.9vw, 31px) clamp(9px, 3.4vw, 44px);
+    display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: clamp(9px, 1.7vw, 19px);
+  }
+  .sa-page-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 4px;
+    min-width: 0; border-bottom: 1px solid #c6a79886; padding-bottom: clamp(3px, .6vw, 7px);
+  }
+  .sa-page-head span { color: #a47276; font-size: clamp(14px, 2vw, 24px); line-height: 1; }
+  .sa-add, .sa-close-book {
+    border: 0; background: none; padding: 2px 0; min-height: 28px; color: var(--muted);
+    font-size: clamp(11px, 1.4vw, 14px) !important; white-space: nowrap;
+  }
+  .sa-add:hover, .sa-close-book:hover { color: #a14964; text-decoration: underline; }
+  .sa-number {
+    justify-self: start; color: #815c60; font: italic clamp(12px, 1.5vw, 17px)/1 Georgia, serif;
+    letter-spacing: .06em;
+  }
+  .sa-page[data-side="right"] .sa-number { justify-self: end; }
+  .sa-grid {
+    display: grid; min-height: 0; grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+    grid-template-rows: repeat(var(--columns), minmax(0, 1fr));
+    gap: clamp(4px, 1.2vw, 15px);
+  }
+  .sa-empty {
+    grid-area: 1 / 1 / -1 / -1; place-self: center; margin: 0; color: #8c6569;
+    font-size: clamp(11px, 1.45vw, 15px);
+  }
+  .sa-endnote {
+    display: grid; gap: 10px; justify-items: center; padding: 10px;
+    color: #8a626a; letter-spacing: .08em;
+  }
+  .sa-endnote strong {
+    font: 400 italic clamp(15px, 2.1vw, 22px)/1.3 Georgia, serif; color: #a05a70;
+    border-bottom: 1px solid #d8b7bb; padding-bottom: 6px;
+  }
+  .sa-endnote span { font-size: clamp(11px, 1.4vw, 14px); line-height: 1.9; text-align: center; }
+  .sa-photo {
+    position: relative; min-width: 0; min-height: 0; border-radius: 4px;
+    box-shadow: 1px 2px 4px #52303140, 0 1px 0 #835c4e66;
+  }
+  .sa-photo-open {
+    display: block; width: 100%; height: 100%; overflow: hidden; padding: 0;
+    background: #fff9ef; border: clamp(2px, .43vw, 6px) solid #fff9ef;
+    border-radius: inherit;
+  }
+  .sa-photo-open img { width: 100%; height: 100%; display: block; object-fit: cover; border-radius: 2px; }
+  .sa-photo::before, .sa-photo::after {
+    content: ""; position: absolute; z-index: 1; pointer-events: none;
+    width: clamp(7px, 1.15vw, 15px); aspect-ratio: 1;
+    background: linear-gradient(135deg, #eddac4, #9f7865);
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+  }
+  .sa-photo::before { top: -1px; left: -1px; }
+  .sa-photo::after { bottom: -1px; right: -1px; rotate: 180deg; }
+  .sa-photo-remove {
+    position: absolute; top: 1px; right: 1px; z-index: 2; width: 22px; height: 22px;
+    border: 0; border-radius: 50%; padding: 0; opacity: 0;
+    background: #fff9ef; box-shadow: 0 1px 3px #53304344;
+  }
+  .sa-photo:hover .sa-photo-remove, .sa-photo:focus-within .sa-photo-remove { opacity: 1; }
+  .sa-corner {
+    position: absolute; z-index: 3; bottom: 0; left: 0; border: 0; padding: 0;
+    width: clamp(34px, 4.7vw, 63px); height: clamp(24px, 3vw, 41px);
+    border-radius: 0 3px 0 var(--page-radius); background: transparent;
+  }
+  .sa-page[data-side="right"] .sa-corner { left: auto; right: 0; transform: scaleX(-1); }
+  .sa-corner::before {
+    content: ""; position: absolute; bottom: 0; left: 0; pointer-events: none;
+    width: 46%; height: 66%; opacity: .48; transform-origin: bottom left;
+    background: linear-gradient(45deg, #aa8176 4%, #e5cbb6 46%, #fffaef 55%, #d6b4a5 99%);
+    clip-path: polygon(0 0, 100% 100%, 0 100%);
+    transition: transform 140ms ease, opacity 140ms ease;
+  }
+  .sa-corner:is(:hover, :focus-visible, :active)::before { opacity: 1; transform: scale(1.2); }
+  .sa-corner-rest { pointer-events: none; }
+  .sa-corner-rest::before { opacity: .25; }
+
+  /* Cloth cover, foil stamping and bookmark */
+  .sa-cover {
+    width: 50%; left: 50%; border: 1px solid var(--cover-edge); border-radius: 3px 9px 9px 3px;
+    overflow: hidden; padding: 0;
+    background:
+      var(--cover-art, none) center / 100% 100% no-repeat,
+      var(--grain, none),
+      linear-gradient(90deg, #a36a764e, #f9ddd94d 3%, #9d5a6c2c 5%, transparent 10%, #a1586957),
+      radial-gradient(ellipse at 49% 33%, var(--cover-light) 20%, var(--cover-pink) 95%);
+    box-shadow: inset 1px 0 2px #783e5391, inset -2px 1px 3px #fff0dbb5, 2px 4px 6px #75465740;
+  }
+  .sa-cover::before, .sa-cover::after {
+    content: ""; position: absolute; pointer-events: none;
+    border: 1px solid #956c4d9c; border-radius: 3px 6px 6px 3px;
+    box-shadow: 0 1px #fff1cd80, inset 0 1px #fff3d270;
+  }
+  .sa-cover::before { inset: 4% 6% 4% 8%; }
+  .sa-cover::after { inset: calc(4% + 4px) calc(6% + 4px) calc(4% + 4px) calc(8% + 4px); opacity: .64; }
+  .sa-cover-title {
+    position: absolute; z-index: 1; top: 46%; left: 10%; right: 8%; transform: translateY(-50%);
+    display: grid; justify-items: center; gap: clamp(5px, 1.4vw, 13px);
+    color: #614049;
+    text-shadow: 0 1px #fff3e3;
+  }
+  .sa-cover-title .sa-foil {
+    color: var(--foil); font: 400 clamp(18px, 4.1vw, 46px)/1.2 "Songti SC", SimSun, serif;
+    letter-spacing: .16em; padding-left: .16em; white-space: nowrap;
+  }
+  .sa-cover-en { font: 600 clamp(7px, 1.02vw, 12px)/1.4 Georgia, serif; letter-spacing: .24em; }
+  .sa-cover-title::before, .sa-cover-title::after {
+    content: ""; display: block; width: 31%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--foil), transparent);
+  }
+  .sa-cover:focus-visible { outline-offset: 5px !important; }
+
+  /* Double-sided leaf rotating about the spine */
+  .sa-turn {
+    position: absolute; inset: 0 0 0 50%; transform-origin: left center;
+    transform-style: preserve-3d; will-change: transform;
+  }
+  .sa-face {
+    inset: 0; overflow: hidden;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    transform: rotateY(0deg); border-radius: 3px 7px 7px 3px;
+  }
+  .sa-face-back { transform: rotateY(180deg); border-radius: 7px 3px 3px 7px; }
+  .sa-face .sa-page, .sa-face .sa-cover { left: 0; width: 100%; }
+  .sa-face-shade {
+    position: absolute; inset: 0; pointer-events: none; opacity: 0;
+    background: linear-gradient(90deg, #57364764, transparent 50%, #fff2dc9c 80%, #6b495857);
+  }
+  .sa-face-back .sa-face-shade { background: linear-gradient(270deg, #67454a70, transparent 54%, #fff2dfaa 83%, #6b495857); }
+  .sa-cast { pointer-events: none; overflow: hidden; }
+  .sa-cast-shadow {
+    position: absolute; inset: 0; opacity: 0;
+    background: linear-gradient(90deg, transparent 18%, #59374258 48%, #56334177 50%, #59374254 57%, transparent 82%);
+    transform-origin: center;
+  }
+  .sa-footer { min-height: 31px; margin-top: clamp(13px, 2.4vh, 23px); position: relative; }
+  .sa-footer p { margin: 0; padding: 5px 0; color: var(--muted); font-size: clamp(12px, 1.4vw, 15px); letter-spacing: .13em; }
+  .sa-close-book { position: absolute; top: 0; right: max(0px, calc((100% - var(--book-w)) / 2)); }
+  .sa-message { margin: 0; font-size: 13px; color: var(--muted); }
+  .sa-message:empty { display: none; }
+
+  /* Modal photo viewer and editing controls */
+  .sa-lightbox {
+    position: fixed; inset: 0; margin: 0; border: 0; width: 100%; height: 100%;
+    max-width: none; max-height: none; padding: 14px; overflow: auto;
+    background: #261a22f5; color: #fff3e9; touch-action: pan-y pinch-zoom;
+  }
+  .sa-lightbox::backdrop { background: #261a22; }
+  .sa-lightbox[open] { display: grid; place-items: center; }
+  .sa-view { margin: 0; width: min(100%, 1000px); min-width: 0; }
+  .sa-view img {
+    display: block; width: 100%; height: 72vh; height: 72dvh;
+    object-fit: contain; cursor: zoom-out; user-select: none;
+  }
+  .sa-view figcaption { padding: 12px 0; overflow-wrap: anywhere; }
+  .sa-view-controls { display: flex; justify-content: center; gap: 7px; flex-wrap: wrap; }
+  .sa-view-controls button, .sa-view-close, .sa-view-step {
+    border: 1px solid #f3ccd45c; border-radius: 20px; background: #513843e6;
+    color: #fff3e9; min-width: 42px; min-height: 40px; padding: 4px 12px;
+  }
+  .sa-view-controls button:disabled { opacity: .45; }
+  .sa-view-close, .sa-view-step { position: absolute; }
+  .sa-view-close { top: 12px; right: 12px; }
+  .sa-view-step { top: 43%; }
+  .sa-view-step[data-step="-1"] { left: 7px; }
+  .sa-view-step[data-step="1"] { right: 7px; }
+  @media (min-width: 650px) {
+    .sa-album { --page-radius: 8px; }
+    .sa-view-step[data-step="-1"] { left: 2vw; }
+    .sa-view-step[data-step="1"] { right: 2vw; }
+  }
+  @media (hover: none) { .sa-photo-remove { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .sa-corner::before { transition: none; } }
+
 </style>
 </head>
 <body class="locked">
@@ -945,6 +1216,7 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
       </h1>
       <p class="sub" id="s1"></p>
       <div class="board"><span class="board-k">TOGETHER</span><strong id="days">0</strong><span class="board-k">DAYS</span></div>
+      <p class="days-note" id="daysNote"></p>
       <div class="chips" id="chips"></div>
       <p class="love-line" id="loveLine"></p>
       <button class="pbtn" data-next type="button">往下走 ↓</button>
@@ -1086,32 +1358,17 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
 
   <!-- 06 相册 -->
   <section class="ch day" data-ch="8" data-label="我们的相册">
-    <div class="clouds" aria-hidden="true"><div class="cloud" style="left:6%;top:10%"></div>
-      <div class="cloud c3" style="left:64%;top:80%"></div></div>
-    <div class="ch-in center">
-      <p class="kicker" id="k6">CHAPTER 06 · 相册</p>
-      <h2 class="title day" id="t6">我们的相册</h2>
-      <p class="sub" id="s6"></p>
-
-      <div class="book" id="book">
-        <div class="book-body">
-          <div class="book-pages" id="bookPages"></div>
-          <div class="book-cover" id="bookCover" role="button" tabindex="0" aria-label="打开相册">
-            <span class="bc-star">✦</span>
-            <span class="bc-title" id="bcTitle">我们的相册</span>
-            <span class="bc-line"></span>
-            <span class="bc-sub">点一下，翻开</span>
-          </div>
-        </div>
-        <div class="book-nav" id="bookNav">
-          <button class="bnav" type="button" data-pg="-1" aria-label="上一页">‹</button>
-          <span id="bookIdx">1 / 6</span>
-          <button class="bnav" type="button" data-pg="1" aria-label="下一页">›</button>
-        </div>
-      </div>
-
-      <button class="pbtn" data-next type="button">还有一封信 →</button>
+    <div class="sa-mount" id="sakuraAlbum"></div>
+    <div class="petal-sky" id="petalSky" aria-hidden="true"></div>
+    <div class="album-tools">
+      <button type="button" id="albumExport">备份相册</button>
+      <button type="button" id="albumImport">恢复备份</button>
+      <input type="file" id="albumImportFile" accept="application/json" hidden>
+      <span class="album-tip" id="albumTip"></span>
     </div>
+    <!-- 兼容旧脚本的占位节点（相册改为挂载式后不再使用） -->
+    <p hidden id="t6"></p><p hidden id="s6"></p><p hidden id="k6"></p>
+    <div hidden id="book"></div><div hidden id="bookCover"></div><div hidden id="bookPages"></div>
   </section>
 
   <!-- 07 那封信 -->
@@ -1250,7 +1507,12 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
       <p class="kicker" id="k9">CHAPTER 09 · 收尾</p>
       <h2 class="title night" id="t9">生日快乐</h2>
       <p class="sub" id="s9"></p>
-      <p class="next-bd" id="nextBd"></p>
+      <div class="bd-card" id="bdCard" role="button" tabindex="0" aria-label="翻开倒计时牌">
+      <div class="bd-inner">
+        <div class="bd-face bd-front" id="bdFront"></div>
+        <div class="bd-face bd-back" id="bdBack"></div>
+      </div>
+    </div>
       <button class="pbtn small" id="againBtn" type="button">↺ 再看一遍</button>
     </div>
   </section>
@@ -3395,7 +3657,7 @@ setTimeout(() => {
       const j = (Math.random() * (i + 1)) | 0;
       [pool[i], pool[j]] = [pool[j], pool[i]];
     }
-    const shown = pool.slice(0, 8);
+    const shown = pool.slice(0, 14);
     shown.forEach((txt, i) => {
       const el = document.createElement('span');
       el.className = 'wish-float';
@@ -4216,6 +4478,936 @@ if (skip) {
 }
 /* #ch11 这样的深链：直接跳到那一屏 */
 if (JUMP) setTimeout(() => go(Math.max(0, Math.min(chs.length - 1, +JUMP[1] - 1))), 150);
+</script>
+
+<script>
+/* ===== 樱花相册：初始数据与挂载 ===== */
+window.__SAKURA_TITLE__ = '点滴与你';
+window.__SAKURA_SEED__ = [
+  CONFIG.gallery.slice(0, 4).map(function (g) { return { dataURL: g.src, caption: g.caption }; }),
+  CONFIG.gallery.slice(4, 9).map(function (g) { return { dataURL: g.src, caption: g.caption }; }),
+  []
+];
+
+window.__SAKURA_ENDNOTE__ = { page: 2, title: 'TO BE CONTINUED', text: '这一页，留给以后。', text2: '照片会越来越旧，日子会越来越长。' };
+
+
+(() => {
+  'use strict';
+
+  const PHOTOS_PER_PAGE = 9;
+  const MAX_IMAGE_SIDE = 1200;
+  const JPEG_QUALITY = 0.82;
+  const FLIP_MS = 520;
+  const COVER_MS = 620;
+  const STORAGE_KEY = 'sakura-album-photos-v1';
+  const STORE = 'album';
+
+  const markup = `
+    <section class="sa-album" data-view="closed" aria-label="樱花相册" lang="zh-CN">
+      <header class="sa-header">
+        <div class="sa-masthead" aria-hidden="true"><span class="sa-mark">❀</span></div>
+        <h1 lang="en">点滴与你</h1>
+      </header>
+      <div class="sa-stage">
+        <div class="sa-book">
+          <div class="sa-desk-shadow" aria-hidden="true"></div>
+          <div class="sa-ribbon-track" aria-hidden="true"><div class="sa-ribbon"></div></div>
+          <div class="sa-stack" aria-hidden="true"></div>
+          <div class="sa-leaves"></div>
+          <div class="sa-cast" aria-hidden="true"><div class="sa-cast-shadow"></div></div>
+          <div class="sa-turn-layer" aria-hidden="true" inert></div>
+        </div>
+      </div>
+      <footer class="sa-footer">
+        <p class="sa-open-hint">轻触封面打开</p>
+        <button type="button" class="sa-close-book" hidden>合上</button>
+      </footer>
+      <p class="sa-message" role="status"></p>
+      <input class="sa-picker" type="file" accept="image/*" multiple hidden>
+      <dialog class="sa-lightbox" aria-label="照片预览">
+        <figure class="sa-view">
+          <img draggable="false" alt="">
+          <figcaption aria-live="polite"></figcaption>
+          <div class="sa-view-controls">
+            <button type="button" data-move="-1">← 前移</button>
+            <button type="button" data-move="1">后移 →</button>
+            <button type="button" class="sa-view-remove">移除照片</button>
+          </div>
+        </figure>
+        <button type="button" class="sa-view-step" data-step="-1" aria-label="上一张照片">‹</button>
+        <button type="button" class="sa-view-step" data-step="1" aria-label="下一张照片">›</button>
+        <button type="button" class="sa-view-close" aria-label="关闭照片预览" autofocus>✕</button>
+      </dialog>
+    </section>`;
+
+  function element(tag, className, content) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (content !== undefined) node.textContent = content;
+    if (tag === 'button') node.type = 'button';
+    return node;
+  }
+
+  /* Procedural paper grain, sakura and nine numbered sample prints */
+  function canvasAt(width, height) {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    return canvas.getContext('2d');
+  }
+
+  function randomFrom(seed) {
+    return () => {
+      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+      return seed / 4294967296;
+    };
+  }
+
+  function grain() {
+    const ctx = canvasAt(135, 135);
+    const pixels = ctx.createImageData(135, 135);
+    const random = randomFrom(120);
+    for (let i = 0; i < pixels.data.length; i += 4) {
+      const dark = random() < .51;
+      pixels.data.set(dark ? [103, 70, 56, random() * 13] : [255, 252, 236, random() * 34], i);
+    }
+    ctx.putImageData(pixels, 0, 0);
+    return ctx.canvas.toDataURL();
+  }
+
+  function petal(ctx, x, y, size, angle, color) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.scale(size, size);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(-.82, -.48, -.52, -1.34, -.15, -1.07);
+    ctx.lineTo(0, -.96);
+    ctx.bezierCurveTo(.46, -1.49, .86, -.49, 0, 0);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function blossom(ctx, x, y, radius, rotation) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rotation);
+    // Petals are painted in their own unit coordinate space.
+    const wash = ctx.createRadialGradient(0, 0, .04, 0, 0, 1.15);
+    wash.addColorStop(0, '#ad526d');
+    wash.addColorStop(.32, '#df91a4');
+    wash.addColorStop(.72, '#f5bbc5');
+    wash.addColorStop(1, '#ffede4');
+    for (let p = 0; p < 5; p++) petal(ctx, 0, 0, radius, p * Math.PI * 2 / 5, wash);
+    ctx.strokeStyle = '#9749639e';
+    ctx.fillStyle = '#a67752';
+    ctx.lineWidth = .75;
+    for (let p = 0; p < 11; p++) {
+      const angle = p * Math.PI * 2 / 11;
+      const length = radius * (.26 + (p % 3) * .05);
+      const tipX = Math.cos(angle) * length;
+      const tipY = Math.sin(angle) * length;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(tipX, tipY);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(tipX, tipY, radius * .035, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function branch(ctx, start, control, end, width, random, count) {
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#7f555a';
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    ctx.moveTo(...start);
+    ctx.quadraticCurveTo(...control, ...end);
+    ctx.stroke();
+    for (let i = 0; i < count; i++) {
+      const t = .18 + .79 * (i + random() * .7) / count;
+      const s = 1 - t;
+      const x = s * s * start[0] + 2 * s * t * control[0] + t * t * end[0];
+      const y = s * s * start[1] + 2 * s * t * control[1] + t * t * end[1];
+      const tipX = x + (random() - .5) * 105;
+      const tipY = y + (random() - .5) * 120;
+      ctx.lineWidth = Math.max(1, width * .3 * s);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.quadraticCurveTo(x, tipY, tipX, tipY);
+      ctx.stroke();
+      blossom(ctx, tipX, tipY, 13 + random() * 27, random() * 6.3);
+      if (i % 3 === 0) blossom(ctx, x, y, 9 + random() * 17, random() * 6.3);
+    }
+  }
+
+  function botanicalArt(cover) {
+    const ctx = canvasAt(700, cover ? 880 : 550);
+    const random = randomFrom(cover ? 531 : 651);
+    if (cover) {
+      branch(ctx, [720, 22], [516, 202], [166, 132], 6, random, 16);
+      branch(ctx, [640, 85], [542, 112], [462, 10], 4, random, 7);
+      branch(ctx, [720, 41], [620, 134], [630, 297], 4, random, 8);
+      branch(ctx, [-10, 832], [152, 721], [400, 764], 6, random, 16);
+      branch(ctx, [53, 793], [140, 703], [79, 605], 4, random, 7);
+      branch(ctx, [93, 773], [210, 706], [263, 646], 3, random, 7);
+    } else {
+      ctx.globalAlpha = .3;
+      blossom(ctx, 415, 238, 119, .42);
+      ctx.globalAlpha = .8;
+      branch(ctx, [-16, 537], [110, 449], [281, 488], 4, random, 10);
+      branch(ctx, [41, 505], [85, 447], [53, 388], 3, random, 5);
+    }
+    ctx.globalAlpha = .69;
+    for (let i = 0; i < 17; i++) {
+      const x = 30 + random() * 640;
+      const y = 30 + random() * (ctx.canvas.height - 60);
+      if (cover && x > 120 && x < 580 && y > 300 && y < 530) continue;
+      petal(ctx, x, y, 4 + random() * 13, random() * 6.3, '#c77791');
+    }
+    return ctx.canvas.toDataURL();
+  }
+
+  const palettes = [
+    ['#735969', '#ce98a5', '#f9d3b9'], ['#6a7474', '#a7a89b', '#edd3bb'],
+    ['#8c5767', '#d49c95', '#f4c6a9'], ['#66637b', '#aa96af', '#e1bbc2'],
+    ['#8f6577', '#daaaa7', '#f4d5b7'], ['#556c71', '#8eb1a2', '#e5d6a8'],
+    ['#916461', '#d58f79', '#f8d1a5'], ['#71687d', '#b6a4bf', '#ead0bd'],
+    ['#806474', '#cc91a3', '#f7c4bb']
+  ];
+
+  function samplePhoto(order) {
+    const ctx = canvasAt(620, 590);
+    const random = randomFrom(305 + order * 269);
+    const [dark, middle, light] = palettes[order];
+    const sky = ctx.createLinearGradient(0, 70, 570, 600);
+    sky.addColorStop(0, light);
+    sky.addColorStop(.51, middle);
+    sky.addColorStop(1, dark);
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, 620, 590);
+    for (let i = 0; i < 32; i++) {
+      const x = random() * 620;
+      const y = random() * 590;
+      const size = 16 + random() * 100;
+      const glow = ctx.createRadialGradient(x, y, 0, x, y, size);
+      glow.addColorStop(0, light + '97');
+      glow.addColorStop(1, light + '00');
+      ctx.fillStyle = glow;
+      ctx.fillRect(x - size, y - size, size * 2, size * 2);
+    }
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = [light + '60', middle + '8c', dark + '94'][i];
+      ctx.beginPath();
+      ctx.moveTo(0, 402 + i * 49);
+      ctx.bezierCurveTo(177, 320 + i * 66, 321, 530 + i * 12, 620, 359 + i * 68);
+      ctx.lineTo(620, 590);
+      ctx.lineTo(0, 590);
+      ctx.fill();
+    }
+    ctx.globalAlpha = .65;
+    for (let i = 0; i < 10; i++) petal(ctx, random() * 620, random() * 590, 4 + random() * 14, random() * 6.3, light);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#fffbef';
+    ctx.shadowColor = dark;
+    ctx.shadowBlur = 9;
+    ctx.textAlign = 'center';
+    ctx.font = 'italic 86px Georgia, serif';
+    ctx.fillText(String(order + 1).padStart(2, '0'), 310, 323);
+    ctx.font = '24px "Microsoft YaHei", "PingFang SC", sans-serif';
+    ctx.fillText('示例', 310, 365);
+    return { dataURL: ctx.canvas.toDataURL('image/jpeg', JPEG_QUALITY), caption: `示例 ${order + 1}` };
+  }
+
+  /* Persistent records and device-image compression */
+  function openDatabase() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(STORAGE_KEY, 1);
+      let abandoned = false;
+      request.onupgradeneeded = () => request.result.createObjectStore(STORE);
+      request.onerror = () => reject(request.error);
+      request.onblocked = () => {
+        abandoned = true;
+        reject(new Error('IndexedDB is blocked'));
+      };
+      request.onsuccess = () => {
+        const database = request.result;
+        if (abandoned) database.close();
+        else {
+          database.onversionchange = () => database.close();
+          resolve(database);
+        }
+      };
+    });
+  }
+
+  function readRecords(database) {
+    return new Promise((resolve, reject) => {
+      const request = database.transaction(STORE).objectStore(STORE).get('photos');
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  function writeRecords(database, records) {
+    return new Promise((resolve, reject) => {
+      const transaction = database.transaction(STORE, 'readwrite');
+      transaction.oncomplete = () => resolve();
+      transaction.onabort = () => reject(transaction.error);
+      transaction.objectStore(STORE).put(records, 'photos');
+    });
+  }
+
+  async function compress(file) {
+    const url = URL.createObjectURL(file);
+    try {
+      const image = new Image();
+      image.src = url;
+      await image.decode();
+      const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(image.naturalWidth, image.naturalHeight));
+      const width = Math.max(1, Math.round(image.naturalWidth * scale));
+      const height = Math.max(1, Math.round(image.naturalHeight * scale));
+      const ctx = canvasAt(width, height);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(image, 0, 0, width, height);
+      return {
+        dataURL: ctx.canvas.toDataURL('image/jpeg', JPEG_QUALITY),
+        caption: file.name.replace(/\.[^.]+$/, '').trim() || '照片'
+      };
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  function decodeImages(...containers) {
+    const images = containers.filter(Boolean).flatMap(container => [...container.querySelectorAll('img')]);
+    return Promise.allSettled(images.map(image => image.decode()));
+  }
+
+  /* Album state, rendering, interaction and host entry point */
+  const mounts = new WeakMap();
+  let artwork;
+
+  function mount(el) {
+    if (mounts.has(el)) return mounts.get(el);
+    const template = element('template');
+    template.innerHTML = markup.trim();
+    const root = template.content.firstElementChild;
+    mounts.set(el, root);
+    el.append(root);
+    artwork ||= [grain(), botanicalArt(true), botanicalArt(false)];
+    ['--grain', '--cover-art', '--endpaper-art'].forEach((key, i) => {
+      root.style.setProperty(key, `url("${artwork[i]}")`);
+    });
+
+    const find = selector => root.querySelector(selector);
+    const book = find('.sa-book');
+    const ribbon = find('.sa-ribbon-track');
+    const stack = find('.sa-stack');
+    const deskShadow = find('.sa-desk-shadow');
+    const leaves = find('.sa-leaves');
+    const turnLayer = find('.sa-turn-layer');
+    const castShadow = find('.sa-cast-shadow');
+    const closeBook = find('.sa-close-book');
+    const openHint = find('.sa-open-hint');
+    const message = find('.sa-message');
+    const picker = find('.sa-picker');
+    const dialog = find('.sa-lightbox');
+    const viewerImage = dialog.querySelector('img');
+    const caption = dialog.querySelector('figcaption');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    let pages = [[], []];
+    let spread = 0;
+    let isOpen = false;
+    let turning = false;
+    let ready = false;
+    let importing = false;
+    let activePhoto = null;
+    let pickPage = 0;
+    let database;
+    let queuedSave = Promise.resolve();
+    let warmedPages = [];
+
+    function save() {
+      const snapshot = pages.flatMap((photos, page) => photos.map((photo, order) => ({ ...photo, page, order })));
+      // Serialize writes so rapid edits cannot put an older album back on disk.
+      queuedSave = queuedSave.then(async () => {
+        if (database) {
+          try {
+            await writeRecords(database, snapshot);
+            try { localStorage.removeItem(STORAGE_KEY); } catch { /* Storage may be disabled. */ }
+            return;
+          } catch {
+            // Keep trying IndexedDB on future saves in case the failure was temporary.
+          }
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+      }).catch(() => { message.textContent = '无法保存更改，请检查浏览器的存储空间。'; });
+    }
+
+    function makeCover(interactive) {
+      const cover = element(interactive ? 'button' : 'div', 'sa-cover');
+      const title = element('span', 'sa-cover-title');
+      const english = element('span', 'sa-cover-en', 'PHOTO ALBUM');
+      english.lang = 'en';
+      title.append(element('span', 'sa-foil', window.__SAKURA_TITLE__ || '点滴与你'), english);
+      cover.append(title);
+      if (interactive) {
+        cover.setAttribute('aria-label', '打开樱花相册');
+        cover.disabled = !ready;
+        cover.addEventListener('click', () => changeCover(true));
+      }
+      return cover;
+    }
+
+    function buildPhoto(photo, interactive) {
+      const frame = element('div', 'sa-photo');
+      const preview = element(interactive ? 'button' : 'div', 'sa-photo-open');
+      const image = element('img');
+      image.alt = photo.caption;
+      image.draggable = false;
+      image.src = photo.dataURL;
+      preview.append(image);
+      frame.append(preview);
+      if (interactive) {
+        preview.addEventListener('click', () => openPhoto(photo));
+        const remove = element('button', 'sa-photo-remove', '×');
+        remove.setAttribute('aria-label', `移除 ${photo.caption}`);
+        remove.addEventListener('click', () => removePhoto(photo));
+        frame.append(remove);
+      }
+      return frame;
+    }
+
+    function makePage(index, interactive = true) {
+      const page = element('section', 'sa-page');
+      const side = index % 2 === 0 ? 'left' : 'right';
+      const photos = pages[index] || [];
+      page.dataset.side = side;
+      page.setAttribute('aria-label', `第 ${index + 1} 页`);
+      const inner = element('div', 'sa-page-inner');
+      const heading = element('div', 'sa-page-head');
+      const flower = element('span', '', '❀');
+      flower.setAttribute('aria-hidden', 'true');
+      const add = element(interactive ? 'button' : 'div', 'sa-add', '＋ 添加照片');
+      if (interactive) {
+        add.disabled = importing;
+        add.addEventListener('click', () => {
+          if (turning || importing) return;
+          pickPage = index;
+          picker.click();
+        });
+      }
+      heading.append(flower, add);
+      const grid = element('div', 'sa-grid');
+      grid.style.setProperty('--columns', photos.length <= 1 ? 1 : photos.length <= 4 ? 2 : 3);
+      if (photos.length) {
+        grid.append(...photos.map(photo => buildPhoto(photo, interactive)));
+      } else {
+        const note = window.__SAKURA_ENDNOTE__;
+        const isLast = note && typeof note.page === 'number' ? index === note.page : index >= pages.length - 1;
+        if (note && isLast) {
+          const box = element('div', 'sa-empty sa-endnote');
+          box.append(element('strong', '', note.title), element('span', '', note.text));
+          if (note.text2) box.append(element('span', '', note.text2));
+          grid.append(box);
+        } else {
+          grid.append(element('p', 'sa-empty', '这页还没有照片'));
+        }
+      }
+      const number = element('span', 'sa-number', String(index + 1).padStart(2, '0'));
+      inner.append(heading, grid, number);
+      page.append(inner);
+      const target = side === 'left' ? index - 2 : index + 1;
+      const canTurn = target >= 0 && target < pages.length;
+      const corner = element(interactive && canTurn ? 'button' : 'div', canTurn ? 'sa-corner' : 'sa-corner sa-corner-rest');
+      if (interactive && canTurn) {
+        corner.setAttribute('aria-label', side === 'left' ? '翻到上一页' : '翻到下一页');
+        corner.addEventListener('click', () => turnTo(target));
+      } else corner.setAttribute('aria-hidden', 'true');
+      page.append(corner);
+      return page;
+    }
+
+    function warmNearby() {
+      warmedPages = [spread - 2, spread - 1, spread + 2, spread + 3]
+        .filter(index => index >= 0 && index < pages.length)
+        .map(index => makePage(index, false));
+      void decodeImages(...warmedPages);
+    }
+
+    function render() {
+      root.dataset.view = isOpen ? 'open' : 'closed';
+      closeBook.hidden = !isOpen;
+      openHint.hidden = isOpen;
+      if (isOpen) leaves.replaceChildren(makePage(spread), makePage(spread + 1));
+      else leaves.replaceChildren(makeCover(true));
+      warmNearby();
+    }
+
+    function face(content, back) {
+      const side = element('div', back ? 'sa-face sa-face-back' : 'sa-face');
+      const shade = element('div', 'sa-face-shade');
+      side.append(content, shade);
+      return side;
+    }
+
+    function animateFlip(front, back, reverse, cover = false) {
+      const sheet = element('div', 'sa-turn');
+      sheet.append(face(front, false), face(back, true));
+      turnLayer.replaceChildren(sheet);
+      const timing = {
+        duration: cover ? COVER_MS : FLIP_MS,
+        easing: 'cubic-bezier(.43,.09,.28,1)',
+        direction: reverse ? 'reverse' : 'normal',
+        fill: 'both'
+      };
+      const keyframes = [
+        { transform: 'rotateY(0deg) skewY(0deg) scaleX(1)' },
+        { transform: `rotateY(-86deg) skewY(${cover ? '-.35' : '-2.1'}deg) scaleX(.975)`, offset: .51 },
+        { transform: 'rotateY(-180deg) skewY(0deg) scaleX(1)' }
+      ];
+      const animations = [sheet.animate(keyframes, timing)];
+      sheet.querySelectorAll('.sa-face-shade').forEach(shade => {
+        animations.push(shade.animate([
+          { opacity: 0, transform: 'scaleX(1)' },
+          { opacity: .8, transform: 'scaleX(1.45)', offset: .5 },
+          { opacity: 0, transform: 'scaleX(1)' }
+        ], timing));
+      });
+      animations.push(castShadow.animate([
+        { opacity: 0, transform: 'translateX(21%) scaleX(.85)' },
+        { opacity: .82, transform: 'translateX(0) scaleX(.4)', offset: .5 },
+        { opacity: 0, transform: 'translateX(-21%) scaleX(.85)' }
+      ], timing));
+      if (cover) {
+        animations.push(book.animate([
+          { transform: 'translateX(-25%)' }, { transform: 'translateX(0)' }
+        ], timing));
+        animations.push(ribbon.animate([
+          { transform: 'translateX(30%)' }, { transform: 'translateX(0)' }
+        ], timing));
+        for (const backing of [stack, deskShadow]) {
+          animations.push(backing.animate([
+            { transform: 'scaleX(.5)' }, { transform: 'scaleX(1)' }
+          ], timing));
+        }
+      }
+      return animations;
+    }
+
+    async function playTurn(front, back, underneath, reverse, cover) {
+      await decodeImages(front, back, ...underneath);
+      leaves.inert = true;
+      if (cover) root.dataset.view = 'cover-turn';
+      leaves.replaceChildren(...underneath);
+      const animations = animateFlip(front, back, reverse, cover);
+      await Promise.allSettled(animations.map(animation => animation.finished));
+      turnLayer.replaceChildren();
+      animations.forEach(animation => animation.cancel());
+      leaves.inert = false;
+    }
+
+    async function changeCover(open) {
+      if (!ready || turning || isOpen === open) return;
+      turning = true;
+      if (!reducedMotion.matches) {
+        await playTurn(makeCover(false), makePage(spread, false), [makePage(spread + 1, false)], !open, true);
+      }
+      isOpen = open;
+      turning = false;
+      render();
+      (open ? closeBook : find('.sa-cover')).focus({ preventScroll: true, focusVisible: false });
+    }
+
+    async function turnTo(target) {
+      if (turning || importing || !isOpen || target < 0 || target >= pages.length) return;
+      turning = true;
+      const reverse = target < spread;
+      const start = Math.min(spread, target);
+      if (!reducedMotion.matches) {
+        await playTurn(makePage(start + 1, false), makePage(start + 2, false),
+          [makePage(start, false), makePage(start + 3, false)], reverse, false);
+      }
+      spread = target;
+      turning = false;
+      render();
+      const side = reverse ? 'left' : 'right';
+      const page = leaves.querySelector(`[data-side="${side}"]`);
+      const focusTarget = page.querySelector('button.sa-corner') || page.querySelector('.sa-add');
+      focusTarget.focus({ preventScroll: true, focusVisible: false });
+    }
+
+    function insertPhotos(index, photos) {
+      pages[index].push(...photos);
+      // Keep the chosen page's existing order and carry its tail to the next page.
+      for (let i = index; pages[i].length > PHOTOS_PER_PAGE; i++) {
+        const overflow = pages[i].splice(PHOTOS_PER_PAGE);
+        pages[i + 1] ||= [];
+        pages[i + 1].unshift(...overflow);
+      }
+      if (pages.length % 2) pages.push([]);
+    }
+
+    picker.addEventListener('change', async () => {
+      const files = [...picker.files];
+      picker.value = '';
+      if (!files.length || importing) return;
+      importing = true;
+      render();
+      message.textContent = '正在处理照片…';
+      const imported = [];
+      let failed = 0;
+      // Decode files sequentially to limit memory use on phones.
+      for (const file of files) {
+        try { imported.push(await compress(file)); }
+        catch { failed++; }
+      }
+      if (imported.length) {
+        insertPhotos(pickPage, imported);
+        save();
+      }
+      importing = false;
+      message.textContent = failed ? `${failed} 张照片无法读取。` : '';
+      if (!turning) render();
+    });
+
+    function currentPosition() {
+      const list = pages.flat();
+      return { list, index: list.indexOf(activePhoto) };
+    }
+
+    function showPhoto() {
+      const { list, index } = currentPosition();
+      spread = pages.findIndex(photos => photos.includes(activePhoto)) & ~1;
+      viewerImage.src = activePhoto.dataURL;
+      viewerImage.alt = activePhoto.caption;
+      caption.textContent = `${activePhoto.caption} · ${index + 1} / ${list.length}`;
+      dialog.querySelectorAll('[data-step], [data-move]').forEach(control => {
+        const target = index + Number(control.dataset.step || control.dataset.move);
+        control.disabled = target < 0 || target >= list.length;
+      });
+    }
+
+    function openPhoto(photo) {
+      if (turning) return;
+      activePhoto = photo;
+      showPhoto();
+      dialog.showModal();
+    }
+
+    function stepPhoto(direction) {
+      const { list, index } = currentPosition();
+      if (!list[index + direction]) return;
+      activePhoto = list[index + direction];
+      showPhoto();
+    }
+
+    function movePhoto(direction) {
+      const { list, index } = currentPosition();
+      const other = list[index + direction];
+      if (!other) return;
+      const from = pages.find(photos => photos.includes(activePhoto));
+      const to = pages.find(photos => photos.includes(other));
+      const originIndex = from.indexOf(activePhoto);
+      const targetIndex = to.indexOf(other);
+      from[originIndex] = other;
+      to[targetIndex] = activePhoto;
+      save();
+      showPhoto();
+    }
+
+    function removePhoto(photo) {
+      if (turning || importing) return;
+      const list = pages.flat();
+      const index = list.indexOf(photo);
+      if (index < 0) return;
+      const page = pages.find(photos => photos.includes(photo));
+      page.splice(page.indexOf(photo), 1);
+      while (pages.length > 2 && !pages.at(-1).length && !pages.at(-2).length) pages.splice(-2);
+      spread = Math.min(spread, pages.length - 2);
+      save();
+      if (dialog.open) {
+        activePhoto = list[index + 1] || list[index - 1];
+        if (activePhoto) showPhoto();
+        else dialog.close();
+      } else render();
+    }
+
+    dialog.querySelectorAll('[data-step]').forEach(control => {
+      control.addEventListener('click', () => stepPhoto(Number(control.dataset.step)));
+    });
+    dialog.querySelectorAll('[data-move]').forEach(control => {
+      control.addEventListener('click', () => movePhoto(Number(control.dataset.move)));
+    });
+    dialog.querySelector('.sa-view-remove').addEventListener('click', () => removePhoto(activePhoto));
+    dialog.querySelector('.sa-view-close').addEventListener('click', () => dialog.close());
+    dialog.addEventListener('close', () => {
+      const index = (pages[spread] || []).concat(pages[spread + 1] || []).indexOf(activePhoto);
+      activePhoto = null;
+      viewerImage.removeAttribute('src');
+      render();
+      const controls = leaves.querySelectorAll('.sa-photo-open');
+      const focusTarget = controls[index] || leaves.querySelector('.sa-add');
+      focusTarget?.focus({ preventScroll: true, focusVisible: false });
+    });
+    dialog.addEventListener('keydown', event => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      event.preventDefault();
+      stepPhoto(event.key === 'ArrowLeft' ? -1 : 1);
+    });
+
+    let touchStart;
+    let lastSwipe = -Infinity;
+    dialog.addEventListener('touchstart', event => {
+      touchStart = event.touches.length === 1 && !event.target.closest('button') ? event.touches[0] : null;
+    }, { passive: true });
+    dialog.addEventListener('touchend', event => {
+      if (!touchStart) return;
+      const touch = event.changedTouches[0];
+      const x = touch.clientX - touchStart.clientX;
+      const y = touch.clientY - touchStart.clientY;
+      touchStart = null;
+      if (Math.abs(x) < 40 || Math.abs(x) < Math.abs(y) * 1.45) return;
+      lastSwipe = performance.now();
+      stepPhoto(x < 0 ? 1 : -1);
+    }, { passive: true });
+    dialog.addEventListener('touchcancel', () => { touchStart = null; }, { passive: true });
+    dialog.addEventListener('click', event => {
+      if (!event.target.closest('button') && performance.now() - lastSwipe > 350) dialog.close();
+    });
+    closeBook.addEventListener('click', () => changeCover(false));
+
+    async function initialize() {
+      render();
+      let records;
+      // A fallback snapshot may hold newer edits from an earlier IndexedDB failure.
+      try {
+        const backup = localStorage.getItem(STORAGE_KEY);
+        if (backup !== null) records = JSON.parse(backup);
+      } catch { /* IndexedDB remains available in most browsers. */ }
+      try {
+        database = await openDatabase();
+        if (!Array.isArray(records)) records = await readRecords(database);
+      } catch { /* Use the localStorage snapshot or the starter prints. */ }
+      if (Array.isArray(records)) {
+        records.sort((a, b) => a.page - b.page || a.order - b.order);
+        for (const { page, dataURL, caption: photoCaption } of records) {
+          while (pages.length <= page) pages.push([]);
+          pages[page].push({ dataURL, caption: photoCaption });
+        }
+        if (pages.length % 2) pages.push([]);
+      } else if (Array.isArray(window.__SAKURA_SEED__) && window.__SAKURA_SEED__.length) {
+        /* 宿主页注入的初始相册：按页分组 */
+        pages = window.__SAKURA_SEED__.map(page => page.map(photo => ({ ...photo })));
+      } else {
+        const samples = Array.from({ length: 9 }, (_, index) => samplePhoto(index));
+        pages = [samples.slice(0, 4), samples.slice(4)];
+      }
+      await decodeImages(makePage(0, false), makePage(1, false));
+      ready = true;
+      render();
+    }
+
+    void initialize();
+    return root;
+  }
+
+  window.SakuraAlbum = { mount };
+  if (document.body?.hasAttribute('data-sakura-standalone')) mount(document.body);
+})();
+
+
+(function () {
+  function mountAlbum() {
+    var host = document.getElementById('sakuraAlbum');
+    if (!host || !window.SakuraAlbum) return;
+    window.SakuraAlbum.mount(host);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountAlbum);
+  else mountAlbum();
+})();
+</script>
+
+<script>
+/* ===== ① 天数注释 / ④ 清单日期 / ⑦ 相册备份 / ⑨ 花瓣 / ⑪ 倒计时牌 ===== */
+(function () {
+  'use strict';
+  var $ = function (s) { return document.querySelector(s); };
+
+  /* ---------- ① 第 01 屏：把天数说成人话 ---------- */
+  function daysNote() {
+    var el = document.getElementById('daysNote');
+    if (!el) return;
+    if (typeof CONFIG === 'undefined' || !CONFIG.startDate) return;
+    var start = new Date(CONFIG.startDate + 'T00:00:00');
+    var now = new Date();
+    var days = Math.max(1, Math.floor((now - start) / 86400000));
+    var y = now.getFullYear() - start.getFullYear();
+    var m = now.getMonth() - start.getMonth();
+    var d = now.getDate() - start.getDate();
+    if (d < 0) { m--; d += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); }
+    if (m < 0) { y--; m += 12; }
+    var parts = [];
+    if (y) parts.push(y + ' 年');
+    if (m) parts.push(m + ' 个月');
+    if (d) parts.push(d + ' 天');
+    el.textContent = '也就是 ' + parts.join(' ') + '，' + days + ' 次日出和 ' + days + ' 句晚安。';
+  }
+  daysNote();
+  setInterval(daysNote, 60000);
+
+  /* ---------- ④ 清单：打勾时记下日期 ---------- */
+  var TODO_KEY = 'cjxTodoDates';
+  var dates = {};
+  try { dates = JSON.parse(localStorage.getItem(TODO_KEY) || '{}'); } catch (e) { dates = {}; }
+  function saveDates() { try { localStorage.setItem(TODO_KEY, JSON.stringify(dates)); } catch (e) {} }
+  function paintTodoDates() {
+    var list = document.getElementById('todoList');
+    if (!list) return;
+    Array.prototype.forEach.call(list.children, function (li, i) {
+      var mark = li.querySelector('.tk-date');
+      if (!mark) {
+        mark = document.createElement('em');
+        mark.className = 'tk-date';
+        li.appendChild(mark);
+      }
+      var on = /(^|\s)(done|on|checked)(\s|$)/.test(li.className);
+      mark.textContent = on && dates[i] ? dates[i] : '';
+    });
+  }
+  var todoList = document.getElementById('todoList');
+  if (todoList) {
+    todoList.addEventListener('click', function (e) {
+      var li = e.target.closest('li');
+      if (!li) return;
+      var idx = Array.prototype.indexOf.call(todoList.children, li);
+      setTimeout(function () {
+        var on = /(^|\s)(done|on|checked)(\s|$)/.test(li.className);
+        if (on && !dates[idx]) {
+          var n = new Date();
+          dates[idx] = n.getFullYear() + '.' + String(n.getMonth() + 1).padStart(2, '0') + '.' + String(n.getDate()).padStart(2, '0');
+          saveDates();
+        } else if (!on) {
+          delete dates[idx]; saveDates();
+        }
+        paintTodoDates();
+      }, 30);
+    });
+    paintTodoDates();
+  }
+
+  /* ---------- ⑨ 封面樱花花瓣 ---------- */
+  var sky = document.getElementById('petalSky');
+  if (sky) {
+    for (var i = 0; i < 14; i++) {
+      var p = document.createElement('i');
+      p.className = 'petal';
+      p.style.left = (Math.random() * 96) + '%';
+      p.style.animationDuration = (7 + Math.random() * 7).toFixed(1) + 's';
+      p.style.animationDelay = (-Math.random() * 12).toFixed(1) + 's';
+      var s = (9 + Math.random() * 9).toFixed(0) + 'px';
+      p.style.width = s; p.style.height = s;
+      sky.appendChild(p);
+    }
+  }
+
+  /* ---------- ⑪ 结尾倒计时牌 ---------- */
+  var card = document.getElementById('bdCard');
+  if (card) {
+    var front = document.getElementById('bdFront');
+    var back = document.getElementById('bdBack');
+    var NEXT = new Date('2026-11-23T00:00:00');   /* 先按今年生日算，之后由页面逻辑覆盖 */
+    function fill() {
+      var now = new Date();
+      var target = new Date(now.getFullYear(), 10, 23);
+      if (target < now) target = new Date(now.getFullYear() + 1, 10, 23);
+      var left = Math.ceil((target - now) / 86400000);
+      if (front) front.textContent = '下一站 · ' + target.getFullYear() + '.' + (target.getMonth() + 1) + '.' + target.getDate();
+      if (back) back.textContent = '还有 ' + left + ' 天';
+    }
+    fill();
+    var flip = function () { card.classList.toggle('flipped'); };
+    card.addEventListener('click', flip);
+    card.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); } });
+  }
+
+  /* ---------- ⑦ 相册备份 / 恢复 ---------- */
+  var DB = 'sakura-album-photos-v1', STORE = 'album', KEY = 'photos';
+  function openDB() {
+    return new Promise(function (res, rej) {
+      var r = indexedDB.open(DB, 1);
+      r.onerror = function () { rej(r.error); };
+      r.onsuccess = function () { res(r.result); };
+    });
+  }
+  function readRecords() {
+    return openDB().then(function (db) {
+      return new Promise(function (res, rej) {
+        var tx = db.transaction(STORE, 'readonly');
+        var g = tx.objectStore(STORE).get(KEY);
+        g.onsuccess = function () { res(g.result || []); };
+        g.onerror = function () { rej(g.error); };
+      });
+    });
+  }
+  function writeRecords(list) {
+    return openDB().then(function (db) {
+      return new Promise(function (res, rej) {
+        var tx = db.transaction(STORE, 'readwrite');
+        tx.objectStore(STORE).put(list, KEY);
+        tx.oncomplete = function () { res(true); };
+        tx.onerror = function () { rej(tx.error); };
+      });
+    });
+  }
+  var tip = document.getElementById('albumTip');
+  function say(msg) { if (tip) { tip.textContent = msg; setTimeout(function () { tip.textContent = ''; }, 2600); } }
+
+  var expBtn = document.getElementById('albumExport');
+  if (expBtn) expBtn.addEventListener('click', function () {
+    readRecords().then(function (list) {
+      var blob = new Blob([JSON.stringify({ v: 1, at: new Date().toISOString(), photos: list })], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = '点滴与你-相册备份.json';
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+      say('已导出 ' + list.length + ' 张');
+    }).catch(function () { say('导出失败'); });
+  });
+
+  var impBtn = document.getElementById('albumImport');
+  var impFile = document.getElementById('albumImportFile');
+  if (impBtn && impFile) {
+    impBtn.addEventListener('click', function () { impFile.click(); });
+    impFile.addEventListener('change', function () {
+      var f = impFile.files && impFile.files[0];
+      impFile.value = '';
+      if (!f) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        try {
+          var data = JSON.parse(reader.result);
+          var list = Array.isArray(data) ? data : data.photos;
+          if (!Array.isArray(list)) throw new Error('bad');
+          writeRecords(list).then(function () {
+            say('已恢复 ' + list.length + ' 张，正在刷新…');
+            setTimeout(function () { location.reload(); }, 900);
+          });
+        } catch (err) { say('文件格式不对'); }
+      };
+      reader.readAsText(f);
+    });
+  }
+})();
 </script>
 </body>
 </html>
