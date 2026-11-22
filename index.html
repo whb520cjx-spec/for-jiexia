@@ -840,12 +840,7 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
     radial-gradient(120% 70% at 50% 108%, #6a4a86 0%, #3a2a5c 32%, #1b1745 62%, #0a0d26 100%);
 }
 .fin-canvas{position:absolute; inset:0; width:100%; height:100%; z-index:1}
-.fin-hill{position:absolute; left:0; right:0; bottom:0; width:100%; height:30%; z-index:2}
-.fin-bears{
-  position:absolute; left:50%; bottom:4%; transform:translateX(-50%);
-  width:min(500px,82vw); height:auto; z-index:3;
-  filter:drop-shadow(0 18px 24px rgba(0,0,0,.45));
-}
+.fin-bears{width:clamp(170px,44vw,250px);height:auto;display:block;margin:0 auto}
 .bubu,.yier{animation:breathe 4.2s ease-in-out infinite}
 .yier{animation-delay:-1.8s}
 @keyframes breathe{0%,100%{transform:translateY(0)}50%{transform:translateY(-3.5px)}}
@@ -920,7 +915,7 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
   .book-nav{margin-top:8px}
   .gal .frame{max-height:20vh}
   .tl{max-height:42vh}
-  .finale-in{padding-bottom:min(16vh,96px)}
+  .finale-in{padding-bottom:min(10vh,64px)}
   .about-list{grid-template-columns:1fr; max-height:44vh}
   .next-bd{margin-top:8px; font-size:10px}
   .cake{height:min(34vh,280px); width:auto; margin-top:10px}
@@ -1589,6 +1584,27 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
 .finale-bears{width:clamp(150px,42vw,230px); height:auto; display:block; margin:0 auto; image-rendering:auto; filter:drop-shadow(0 8px 14px rgba(0,0,0,.35))}
 
 .fin-bears{width:clamp(170px,44vw,250px);height:auto;display:block;margin:0 auto}
+
+/* 修复末屏溢出：下内边距 330px 过大（只给山坡留 ~170px 即可） */
+[data-key="finale"] .ch-in{padding-bottom:clamp(120px,19vh,180px) !important}
+[data-key="finale"] .fin-bears{margin-bottom:0}
+
+/* 小屏末屏收紧（SE 375x667） */
+@media (max-width:430px) and (max-height:700px){
+  [data-key="finale"] .fin-bears{width:clamp(120px,34vw,165px) !important}
+  [data-key="finale"] .title{font-size:clamp(21px,5.2vw,32px) !important}
+  [data-key="finale"] .bd-card{margin-top:8px !important}
+  [data-key="finale"] .ch-in{padding-bottom:clamp(96px,15vh,140px) !important}
+}
+
+/* 末屏：山坡固定贴底、熊坐在山坡上 */
+[data-key="finale"]{position:relative}
+[data-key="finale"] .fin-hill{position:absolute !important; left:0; right:0;
+  top:auto !important; bottom:0 !important; z-index:1; pointer-events:none}
+[data-key="finale"] .ch-in{position:relative; z-index:2}
+[data-key="finale"] .fin-bears{position:absolute; left:50%; bottom:44px;
+  transform:translateX(-50%); width:clamp(120px,34vw,186px) !important;
+  height:auto; z-index:3; margin:0; pointer-events:none}
 </style>
 </head>
 <body class="locked">
@@ -1865,24 +1881,20 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
     </svg>
 
     <svg class="fin-bears" viewBox="0 0 260 150" aria-hidden="true">
-      <g>
-        <ellipse cx="96" cy="128" rx="46" ry="8" fill="#00000033"/>
-        <path d="M60 128c-4-26 2-52 16-62 8-6 22-6 30 2 10 10 12 38 8 60z" fill="#b98459"/>
-        <ellipse cx="72" cy="62" rx="13" ry="12" fill="#b98459"/><ellipse cx="72" cy="62" rx="7" ry="6" fill="#d8a97d"/>
-        <ellipse cx="122" cy="62" rx="13" ry="12" fill="#b98459"/><ellipse cx="122" cy="62" rx="7" ry="6" fill="#d8a97d"/>
-        <ellipse cx="97" cy="57" rx="22" ry="20" fill="#c08d63"/>
-        <path d="M78 96c-14 2-22 10-24 20 6 6 16 9 26 9" fill="#a9764e"/>
-      </g>
-      <g>
-        <ellipse cx="176" cy="130" rx="44" ry="8" fill="#00000033"/>
-        <path d="M144 130c-3-24 2-48 15-57 8-5 21-5 28 2 9 9 11 35 7 55z" fill="#f4f1f6"/>
-        <ellipse cx="157" cy="68" rx="12" ry="11" fill="#f4f1f6"/><ellipse cx="157" cy="68" rx="6" ry="5" fill="#e6dfea"/>
-        <ellipse cx="203" cy="68" rx="12" ry="11" fill="#f4f1f6"/><ellipse cx="203" cy="68" rx="6" ry="5" fill="#e6dfea"/>
-        <ellipse cx="180" cy="63" rx="21" ry="19" fill="#fbf9fc"/>
-        <path d="M198 96c14 2 20 12 18 24-8 4-14 5-20 4z" fill="#e7e1ec"/>
-        <rect x="204" y="104" width="12" height="18" rx="5" fill="#8fd2f0"/>
-        <rect x="206" y="99" width="8" height="7" rx="2" fill="#c9b9d8"/>
-      </g>
+      <ellipse cx="96" cy="128" rx="46" ry="8" fill="#00000033"/>
+      <path d="M60 128c-4-26 2-52 16-62 8-6 22-6 30 2 10 10 12 38 8 60z" fill="#b98459"/>
+      <ellipse cx="72" cy="62" rx="13" ry="12" fill="#b98459"/><ellipse cx="72" cy="62" rx="7" ry="6" fill="#d8a97d"/>
+      <ellipse cx="122" cy="62" rx="13" ry="12" fill="#b98459"/><ellipse cx="122" cy="62" rx="7" ry="6" fill="#d8a97d"/>
+      <ellipse cx="97" cy="57" rx="22" ry="20" fill="#c08d63"/>
+      <path d="M78 96c-14 2-22 10-24 20 6 6 16 9 26 9" fill="#a9764e"/>
+      <ellipse cx="176" cy="130" rx="44" ry="8" fill="#00000033"/>
+      <path d="M144 130c-3-24 2-48 15-57 8-5 21-5 28 2 9 9 11 35 7 55z" fill="#f4f1f6"/>
+      <ellipse cx="157" cy="68" rx="12" ry="11" fill="#f4f1f6"/><ellipse cx="157" cy="68" rx="6" ry="5" fill="#e6dfea"/>
+      <ellipse cx="203" cy="68" rx="12" ry="11" fill="#f4f1f6"/><ellipse cx="203" cy="68" rx="6" ry="5" fill="#e6dfea"/>
+      <ellipse cx="180" cy="63" rx="21" ry="19" fill="#fbf9fc"/>
+      <path d="M198 96c14 2 20 12 18 24-8 4-14 5-20 4z" fill="#e7e1ec"/>
+      <rect x="204" y="104" width="12" height="18" rx="5" fill="#8fd2f0"/>
+      <rect x="206" y="99" width="8" height="7" rx="2" fill="#c9b9d8"/>
       <ellipse cx="128" cy="116" rx="5" ry="4" fill="#ffd9e6" opacity=".85"/>
     </svg>
 
