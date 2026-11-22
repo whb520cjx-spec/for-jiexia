@@ -907,7 +907,7 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
 /* 矮屏（iPhone SE 这类 667 高）：相册/时间线更容易顶出去 */
 /* 大屏（桌面/平板）：蛋糕和标题都放大一档 */
 @media (min-width:900px) and (min-height:680px){
-  .cake{height:min(58vh,520px)}
+  .cake{height:min(46vh,470px)}
   #t4{font-size:clamp(26px,2.8vw,44px)}
   .ch .sub{font-size:clamp(13px,1.05vw,16px)}
   [data-key="cake"]{padding-top:22px; padding-bottom:22px}
@@ -1579,6 +1579,12 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
 /* 去掉相册页上的雾状蒙层（旧版 endpaper 叠加） */
 .sa-page::before{display:none !important}
 .sa-page{background-image:var(--grain,none),var(--gutter),linear-gradient(138deg,#fffaf0,#f2e5d7) !important}
+
+/* 修复：照片被某条规则降到 25% 透明度（整页发白） */
+.sa-photo{opacity:1 !important}
+/* 修复：信封标题用手写体（内联 style 之前写坏了） */
+#t7{font-family:"Kaiti SC",STKaiti,KaiTi,"楷体",serif !important;
+    font-size:clamp(28px,6.4vw,52px) !important; letter-spacing:.06em}
 </style>
 </head>
 <body class="locked">
@@ -1799,7 +1805,7 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
     </div>
     <div class="ch-in center is-hidden" id="letterIn">
       <p class="kicker" id="k7">CHAPTER 07 · 信</p>
-      <h2 class="title night" id="t7" style="font-family:\"Kaiti SC\",STKaiti,KaiTi,\"楷体\",serif;font-size:clamp(28px,6.4vw,52px);letter-spacing:.06em">有封信，要点开</h2>
+      <h2 class="title night" id="t7">有封信，要点开</h2>
       <div class="dialog" style="margin-top:22px">
         <div class="dialog-bar"><span>LETTER.TXT</span><b id="dTitle">TO YOU</b></div>
         <div class="dialog-body" id="dBody" tabindex="0" role="button" aria-label="跳过打字"></div>
@@ -2781,7 +2787,7 @@ $('#no3').addEventListener('click', () => {
   revealQuiz2();
 });
 
-/* ---------- 04 许愿：3D 星空蛋糕（Codex 第二轮） ---------- */
+/* ---------- 04 许愿：3D 星空蛋糕（Codex 修正版） ---------- */
 const cake = $('#cake');
 
   (() => {
@@ -2789,11 +2795,12 @@ const cake = $('#cake');
 
     const WIDTH = 760, VIEW_HEIGHT = 966, CENTER = 369, BASELINE = 792;
     const RADIUS = 215, HEIGHT = 303, PITCH = .329, TILT_LIMIT = .13;
-    const PLATE_RADIUS = 330, BASE_SPEED = .24;
-    const CANDLE_HEIGHT = 179, FLAME_HEIGHT = 163, FLAME_WIDTH = 23;
+    const PLATE_RADIUS = 265, BASE_SPEED = .24;
+    const CANDLE_HEIGHT = 179, FLAME_HEIGHT = 170, FLAME_WIDTH = 23;
     const ORBIT = { x: -14, y: -326, rx: 350, ry: 391, tilt: -.15 };
-    const SIDE_SPRINKLES = 3180, TOP_SPRINKLES = 640, BOKEH_COUNT = 70, SMOKE_COUNT = 10;
+    const SIDE_SPRINKLES = 3180, TOP_SPRINKLES = 42, BOKEH_COUNT = 70, SMOKE_COUNT = 10;
     const ATLAS_W = 1600, ATLAS_H = 512, TOP_SIZE = 512, BODY_STRIPS = 94, MAX_DPR = 2;
+    const FRAME_INTERVAL = 1000 / 60;
     const TAU = Math.PI * 2;
     const WHITE = 0, GOLD = 1, YELLOW = 2, ORANGE = 3, BLUE = 4;
     const CYAN = 5, PINK = 6, RED = 7, LILAC = 8, MINT = 9;
@@ -2813,7 +2820,7 @@ const cake = $('#cake');
       BLUE, BLUE, BLUE, CYAN, PINK, RED, LILAC, LILAC, MINT];
 
     const canvas = document.getElementById('cakeCv');
-    const hint = { set textContent(v) { const el = document.getElementById('h4'); if (el) el.textContent = v.indexOf('blow') >= 0 ? '愿望收到了。' : '点一下蛋糕，点亮蜡烛'; } };
+    const hint = { set textContent(v) { const el=document.getElementById('h4'); if(el) el.textContent = v.indexOf('blow')>=0 ? '愿望收到了。' : '点一下蛋糕，点亮蜡烛'; } };
     const ctx = canvas.getContext('2d', { alpha: false });
     const clamp = (v, low, high) => Math.max(low, Math.min(high, v));
     const mix = (a, b, f) => a + (b - a) * f;
@@ -2985,12 +2992,14 @@ const cake = $('#cake');
           const lip = smooth(clamp((drips[x] - v) * 51 + (detail - .53) * .9, 0, 1));
           const edge = Math.max(0, 1 - Math.abs(v - drips[x] + .012) * 52);
           const lipLight = lip * Math.max(0, 1 - v * 3.35) * (.14 + cloud ** 2);
-          pixels[i] = 7 + 42 * milk + 114 * blush * milk + hem * (15 + 46 * blush) +
-            lipLight * (77 + 133 * blush) + edge * lip * 17 + grain;
-          pixels[i + 1] = 7 + 27 * milk + hem * (49 + 62 * lacing) +
-            lipLight * (36 + 39 * lacing) + edge * lip * 12 + grain;
-          pixels[i + 2] = 17 + 108 * milk + hem * (100 + 67 * detail) +
-            lipLight * (102 + 46 * detail) + edge * lip * 35 + grain;
+          const glaze = lip * Math.max(0, 1 - v * 24) * (.40 + lacing * .6);
+          const dripShade = Math.max(0, 1 - Math.abs(v - drips[x] - .013) * 33);
+          pixels[i] = 6 + 32 * milk + 114 * blush * milk + hem * (15 + 46 * blush) +
+            lipLight * (77 + 133 * blush) + edge * lip * 23 + glaze * 119 - dripShade * 8 + grain;
+          pixels[i + 1] = 6 + 20 * milk + hem * (44 + 62 * lacing) +
+            lipLight * (36 + 39 * lacing) + edge * lip * 15 + glaze * 86 - dripShade * 8 + grain;
+          pixels[i + 2] = 15 + 112 * milk + hem * (100 + 67 * detail) +
+            lipLight * (102 + 46 * detail) + edge * lip * 40 + glaze * 143 - dripShade * 8 + grain;
           pixels[i + 3] = 255;
         }
       }
@@ -3029,7 +3038,7 @@ const cake = $('#cake');
       }
       for (const [u, v, size, color, kind, angle] of [
         [.03, .24, 22, LILAC, 0, .11], [.13, .42, 28, WHITE, 0, -.26],
-        [.25, .26, 51, YELLOW, 0, .12], [.31, .22, 18, YELLOW, 0, -.32],
+        [.25, .20, 51, YELLOW, 0, .12], [.31, .22, 18, YELLOW, 0, -.32],
         [.32, .69, 24, BLUE, 1, .2], [.39, .31, 20, CYAN, 0, .22],
         [.43, .40, 36, YELLOW, 0, -.22], [.51, .57, 33, BLUE, 1, .1],
         [.54, .62, 19, RED, 0, -.24], [.60, .73, 23, RED, 0, .1],
@@ -3046,14 +3055,14 @@ const cake = $('#cake');
         const x = u * ATLAS_W, y = .514 * ATLAS_H;
         stamp(g, black, x, y - 7, 163, 45);
         const greeting = 'happy birthday';
-        g.font = '32px "Comic Sans MS", "Segoe Print", cursive';
+        g.font = '28px "Comic Sans MS", "Segoe Print", cursive';
         g.textBaseline = 'middle';
         let letterX = x - g.measureText(greeting).width / 2;
         for (const letter of greeting) {
           g.save();
           g.translate(letterX, y + (rand() - .5) * 3);
           g.rotate((rand() - .5) * .13);
-          g.fillStyle = '#fbefdc';
+          g.fillStyle = '#eee3d7';
           g.fillText(letter, 0, 0);
           g.restore();
           letterX += g.measureText(letter).width;
@@ -3072,23 +3081,41 @@ const cake = $('#cake');
         .027 * Math.sin(angle * 7 + 1.7) ** 3 + .009 * Math.cos(angle * 39 + .3);
     }
 
-    function icingBlob(g, x, y, rx, ry, angle, color) {
+    function icingRosette(g, x, y, rx, ry, angle, [highlight, middle, shadow]) {
       g.save();
       g.translate(x, y);
       g.rotate(angle);
-      g.fillStyle = stops(g.createLinearGradient(0, -ry, 0, ry), [
-        [0, color[0]], [.33, color[1]], [.72, color[1]], [1, color[2]]
+      g.scale(rx, ry);
+      g.fillStyle = shadow;
+      ellipse(g, .04, .18, 1.03, .88);
+      g.fill();
+      g.fillStyle = stops(g.createLinearGradient(-.35, -.92, .2, .86), [
+        [0, highlight], [.30, highlight], [.63, middle], [1, shadow]
       ]);
       g.beginPath();
-      g.moveTo(-rx, 0);
-      g.bezierCurveTo(-rx, -ry * .62, -rx * .51, -ry * .89, -.14 * rx, -ry * .69);
-      g.bezierCurveTo(rx * .26, -ry * .48, rx * .58, -ry * 1.35, rx * .84, -ry * .67);
-      g.bezierCurveTo(rx * 1.29, -ry * .11, rx * .94, ry * .55, rx * .53, ry * .61);
-      g.bezierCurveTo(rx * .15, ry * .6, -rx * .22, ry * 1.07, -rx * .7, ry * .63);
-      g.quadraticCurveTo(-rx, ry * .52, -rx, 0);
+      g.moveTo(-.98, .06);
+      g.bezierCurveTo(-1.11, -.52, -.61, -.99, -.09, -.91);
+      g.bezierCurveTo(.40, -1.04, .94, -.73, .98, -.23);
+      g.bezierCurveTo(1.11, .25, .72, .75, .31, .77);
+      g.bezierCurveTo(-.18, 1.03, -.92, .69, -.98, .06);
       g.fill();
-      g.globalAlpha *= .42;
-      stamp(g, silver, rx * .24, -ry * .4, rx * .63, ry * .5);
+
+      const fold = new Path2D();
+      fold.moveTo(-.79, .12);
+      fold.bezierCurveTo(-.69, -.47, -.16, -.73, .31, -.55);
+      fold.bezierCurveTo(.78, -.40, .66, .15, .28, .27);
+      fold.bezierCurveTo(-.04, .40, -.31, .17, -.19, -.07);
+      g.lineCap = 'round';
+      g.translate(.015, .09);
+      g.strokeStyle = shadow;
+      g.globalAlpha = .62;
+      g.lineWidth = .17;
+      g.stroke(fold);
+      g.translate(-.015, -.09);
+      g.strokeStyle = highlight;
+      g.globalAlpha = .88;
+      g.lineWidth = .105;
+      g.stroke(fold);
       g.restore();
     }
 
@@ -3102,59 +3129,51 @@ const cake = $('#cake');
       }
       g.closePath();
       g.clip();
-      g.fillStyle = stops(g.createRadialGradient(m - 22, m - 32, 12, m, m, r * 1.04), [
-        [0, '#ffe396'], [.27, '#ecd078'], [.50, '#bda06c'], [.79, '#aca1af'],
-        [.92, '#ebe8fe'], [1, '#7d5790']
+      g.fillStyle = stops(g.createRadialGradient(m - 18, m - 22, 0, m, m, r), [
+        [0, '#c394bd'], [.60, '#a2699b'], [.87, '#774671'], [1, '#583453']
       ]);
       g.fillRect(0, 0, TOP_SIZE, TOP_SIZE);
 
       const whipped = [
-        ['#fffaf1', '#e1d9f4', '#8878ac'], ['#fff3c8', '#f4cc66', '#b67649'],
-        ['#ffdcee', '#e684ae', '#9c467d'], ['#ceecff', '#7099e7', '#4f4d9e'],
-        ['#fff9bc', '#f5dc54', '#c28a39'], ['#dbbeeb', '#aa8dc4', '#735886'],
-        ['#98edf1', '#69bbc8', '#547a96'], ['#ffb999', '#d58172', '#995e6d']
+        ['#fff5da', '#dcc0af', '#896076'], ['#ffe0f0', '#d985af', '#863967'],
+        ['#e8d9ff', '#a587db', '#5b438e'], ['#d7efff', '#81a9e9', '#3f5c9b']
       ];
-      for (let i = 0; i < 156; i++) {
-        const a = rand() * TAU, d = Math.sqrt(rand()) * r;
-        const rim = d > r * .83;
-        const color = rim && i % 4 < 2 ? whipped[0] : whipped[(rand() * whipped.length) | 0];
-        g.globalAlpha = .52 + rand() * .47;
-        icingBlob(g, m + Math.sin(a) * d, m + Math.cos(a) * d,
-          10 + rand() * 47, 7 + rand() * 29, -a + rand(), color);
+      // Stagger the piping so the shadowed folds survive the shallow projection.
+      for (const [count, radius, width, depth, phase] of [
+        [22, .88, 34, 29, 0], [12, .58, 42, 34, .5], [5, .28, 44, 37, .2]
+      ]) {
+        for (let i = 0; i < count; i++) {
+          const a = (i + phase + (rand() - .5) * .14) / count * TAU;
+          const d = r * radius * icingRadius(a);
+          icingRosette(g, m + Math.sin(a) * d, m + Math.cos(a) * d,
+            width * (.9 + rand() * .18), depth * (.92 + rand() * .16),
+            -a + (rand() - .5) * .4, whipped[i % whipped.length]);
+        }
       }
+      icingRosette(g, m, m, 36, 33, .3, whipped[0]);
 
-      // A scalloped bead on the edge catches the light and overhangs the side atlas.
-      for (let i = 0; i < 47; i++) {
-        const a = (i + rand() * .58) / 47 * TAU;
-        const d = r * icingRadius(a) - 11 - rand() * 13;
-        g.globalAlpha = .56 + rand() * .42;
-        icingBlob(g, m + Math.sin(a) * d, m + Math.cos(a) * d,
-          15 + rand() * 27, 7 + rand() * 19, -a + (rand() - .5) * .88,
-          whipped[i % 7 < 3 ? 0 : i % 8]);
-      }
+      const toppings = [GOLD, BLUE, CYAN, PINK, RED, GOLD, ORANGE];
       for (let i = 0; i < TOP_SPRINKLES; i++) {
-        const a = rand() * TAU, d = (i % 4 === 0 ? .68 + rand() * .32 : Math.sqrt(rand())) * (r - 7);
-        const kind = i % 12 === 0 ? 0 : i % 3 === 0 ? 1 : i % 4 === 0 ? 3 : 2;
-        const size = 1.4 + rand() ** 2.15 * (kind === 0 ? 23 : 14);
-        g.globalAlpha = .25 + rand() * .75;
+        const a = i * 2.39996 + rand() * .18;
+        const d = Math.sqrt((i + rand()) / TOP_SPRINKLES) * (r - 18);
+        const kind = i % 6 === 0 ? 0 : 3;
+        const size = kind === 0 ? 8 + rand() * 4 : 3.5 + rand() * 3.5;
+        g.globalAlpha = .86;
         sugar(g, m + Math.sin(a) * d, m + Math.cos(a) * d, size, size * .86,
-          rand() * TAU, kind, i % 5 === 0 ? YELLOW : pickColor());
-      }
-      for (let i = 0; i < 37; i++) {
-        const a = rand() * TAU, d = Math.sqrt(rand()) * (r - 11);
-        g.globalAlpha = .27 + rand() * .47;
-        stamp(g, pearlGlow[i % 3 === 0 ? GOLD : WHITE], m + Math.sin(a) * d,
-          m + Math.cos(a) * d, 5 + rand() * 15, 7 + rand() * 15);
+          rand() * TAU, kind, toppings[i % toppings.length]);
       }
       return image;
     }
 
     const sideAtlas = makeSideTexture(), topTexture = makeTopTexture();
 
+    // Keep sky and orbit particles stable when the icing pattern changes.
+    seed = 721816406;
+
     function makeSky() {
       const image = layer(WIDTH, VIEW_HEIGHT), g = image.getContext('2d');
       g.fillStyle = stops(g.createRadialGradient(355, 367, 15, 373, 439, 565), [
-        [0, '#1e181c'], [.38, '#161416'], [.79, '#131316'], [1, '#101013']
+        [0, '#1e181c'], [.38, '#161416'], [.65, '#131316'], [.8, '#111114'], [1, '#111114']
       ]);
       g.fillRect(0, 0, WIDTH, VIEW_HEIGHT);
       g.globalAlpha = .13;
@@ -3163,6 +3182,9 @@ const cake = $('#cake');
       stamp(g, sugarGlow[PINK], 516, 562, 250, 289);
       g.globalAlpha = .06;
       stamp(g, heat, 332, 290, 269, 258);
+      g.globalAlpha = .15;
+      stamp(g, ice, 220, 433, 148, 123);
+      stamp(g, heat, 400, 459, 250, 97);
 
       for (let i = 0; i < 930; i++) {
         const x = rand() * WIDTH, y = 58 + rand() * (VIEW_HEIGHT - 62);
@@ -3176,6 +3198,20 @@ const cake = $('#cake');
         g.fillStyle = PALETTE[pickColor()][size > 2 ? 1 : 0];
         ellipse(g, xx, yy, size, size * (.68 + rand() * .46));
         g.fill();
+      }
+      // Graduated clusters suggest glitter thrown up from the frosting.
+      for (let i = 0; i < 375; i++) {
+        const angle = rand() * TAU, r = Math.sqrt(rand());
+        const x = 363 + Math.cos(angle) * r * (i % 3 === 0 ? 273 : 179);
+        const y = 444 + Math.sin(angle) * r * 344 + (x - 363) * .105;
+        const color = i % 8 < 2 && y < 355 ? GOLD : pickColor();
+        const size = .78 + rand() ** 3.2 * 6.2;
+        g.globalAlpha = .25 + rand() * .68;
+        if (i % 17 === 0) {
+          stamp(g, pearlGlow[color], x, y, size * 3.1 + 1, size * 3.1 + 1);
+        } else {
+          stamp(g, sugarSprites[color][i % 7 === 0 ? 0 : 2], x, y, size * 1.4, size * 1.42);
+        }
       }
       return image;
     }
@@ -3198,7 +3234,11 @@ const cake = $('#cake');
         [97, -86, 11, CYAN, 2, 1], [313, -85, 21, WHITE, 1, 0],
         [-286, -8, 38, LILAC, 1, 1], [249, -14, 20, GOLD, 0, 1],
         [338, -271, 17, ORANGE, 0, 0], [193, -500, 13, ORANGE, 0, 0],
-        [84, -535, 16, GOLD, 0, 0], [-66, -389, 19, BLUE, 0, 0]
+        [84, -535, 16, GOLD, 0, 0], [-66, -389, 19, BLUE, 0, 0],
+        [-131, -357, 13, WHITE, 0, 0], [-169, -376, 16, ORANGE, 2, 0],
+        [-268, -452, 28, BLUE, 2, 0], [-254, -452, 15, CYAN, 4, 0],
+        [172, -305, 31, BLUE, 2, 0], [-96, -334, 25, GOLD, 1, 1],
+        [-54, -285, 17, PINK, 2, 1], [107, -274, 15, GOLD, 2, 1]
       ];
       function add(x, y, radius, color, kind, inFront, alpha, drift) {
         const sprite = kind === 0 ? sugarSprites[color][0] :
@@ -3287,21 +3327,21 @@ const cake = $('#cake');
     const frontOrbit = layer(WIDTH, VIEW_HEIGHT);
     makeOrbit(frontOrbit.getContext('2d'), true);
 
-    const plate = layer(708, 318), plateCtx = plate.getContext('2d');
-    const disc = stops(plateCtx.createLinearGradient(-194, -100, 150, 116), [
-      [0, '#faf7ed'], [.3, '#d4cee8'], [.57, '#b2add5'], [.78, '#f1e6df'], [1, '#fbf7e9']
+    const plate = layer(576, 280), plateCtx = plate.getContext('2d');
+    const disc = stops(plateCtx.createLinearGradient(-165, -90, 185, 112), [
+      [0, '#928176'], [.34, '#74665f'], [.64, '#5c5151'], [1, '#8a7567']
     ]);
-    const porcelainEdge = stops(plateCtx.createLinearGradient(-294, -10, 323, 109), [
-      [0, '#739fdf'], [.24, '#8bc2f5'], [.50, '#4d77c7'], [.74, '#c0b8d4'], [1, '#c4a6a0']
+    const porcelainEdge = stops(plateCtx.createLinearGradient(-PLATE_RADIUS, 0, PLATE_RADIUS, 0), [
+      [0, '#594b49'], [.43, '#3f3538'], [1, '#68554d']
     ]);
-    const plateRim = stops(plateCtx.createLinearGradient(-289, -32, 260, 84), [
-      [0, '#f6f1ff'], [.23, '#e2e6ff'], [.50, '#abbdfa'], [.74, '#fff8dc'], [1, '#fff4d9']
+    const plateRim = stops(plateCtx.createLinearGradient(-219, -45, 240, 70), [
+      [0, '#af9b8f'], [.42, '#76645e'], [.70, '#8b776b'], [1, '#b5a090']
     ]);
 
     let pitch = PITCH, sinPitch = Math.sin(pitch), cosPitch = Math.cos(pitch);
     let topY, topDepth, plateDepth, candleFoot, candleTip, wick;
     let bodyShape, topLightShape, preparedPitch = NaN;
-    const PLATE_Y = 14, PLATE_OFFSET = 153;
+    const PLATE_Y = 12, PLATE_OFFSET = 132;
 
     function prepareGeometry() {
       if (pitch === preparedPitch) return;
@@ -3311,9 +3351,9 @@ const cake = $('#cake');
       topY = -HEIGHT * cosPitch;
       topDepth = RADIUS * sinPitch;
       plateDepth = PLATE_RADIUS * sinPitch;
-      candleFoot = topY - 11;
+      candleFoot = topY - 28;
       candleTip = candleFoot - CANDLE_HEIGHT * cosPitch;
-      wick = candleTip - 13;
+      wick = candleTip - 19;
       bodyShape = new Path2D();
       bodyShape.moveTo(-RADIUS, 0);
       bodyShape.lineTo(-RADIUS, topY);
@@ -3336,9 +3376,8 @@ const cake = $('#cake');
       const g = plateCtx;
       g.setTransform(1, 0, 0, 1, plate.width / 2, PLATE_OFFSET);
       g.clearRect(-plate.width / 2, -PLATE_OFFSET, plate.width, plate.height);
-      stamp(g, ice, -37, plateDepth * .77, 353, 62);
-      stamp(g, black, 4, plateDepth * .86, 347, 58);
-      ellipse(g, 0, 8, PLATE_RADIUS, plateDepth);
+      stamp(g, black, 0, plateDepth * .85, PLATE_RADIUS + 17, 36);
+      ellipse(g, 0, 6, PLATE_RADIUS, plateDepth);
       g.fillStyle = porcelainEdge;
       g.fill();
       ellipse(g, 0, 0, PLATE_RADIUS, plateDepth);
@@ -3346,31 +3385,18 @@ const cake = $('#cake');
       g.fill();
       g.save();
       g.clip();
-      g.globalAlpha = .65;
-      stamp(g, silver, -248, -20, 160, plateDepth * 1.1);
-      stamp(g, silver, 254, -13, 160, plateDepth);
-      g.globalAlpha = .50;
-      stamp(g, ice, -94, 28, 262, plateDepth * .99);
-      g.globalAlpha = .32;
-      stamp(g, sugarGlow[LILAC], 147, 43, 141, plateDepth * .75);
       g.globalAlpha = .92;
-      stamp(g, black, -6, -13, 253, plateDepth * .78);
-      stamp(g, black, 0, 11, 214, plateDepth * .73);
+      stamp(g, black, 0, -9, RADIUS + 25, plateDepth * .93);
       for (const p of plateSugar) {
         const x = p.x * PLATE_RADIUS, y = p.y * plateDepth;
-        if ((x / 224) ** 2 + ((y + 9) / (plateDepth * .68)) ** 2 < 1) continue;
-        g.globalAlpha = p.alpha;
-        sugar(g, x, y, p.r, p.r * .73, p.a, p.kind, p.color);
+        if ((x / RADIUS) ** 2 + ((y + 9) / (plateDepth * .68)) ** 2 < 1) continue;
+        g.globalAlpha = p.alpha * .54;
+        sugar(g, x, y, p.r * .8, p.r * .58, p.a, p.kind, p.color);
       }
       g.restore();
       g.strokeStyle = plateRim;
-      g.lineWidth = 3.4;
-      ellipse(g, 0, 0, PLATE_RADIUS - 1.7, plateDepth - 1.4);
-      g.stroke();
-      g.beginPath();
-      g.ellipse(0, -1, PLATE_RADIUS - 8, plateDepth * .92, 0, .39, 2.78);
-      g.strokeStyle = '#fff9ecbc';
-      g.lineWidth = 1.7;
+      g.lineWidth = 2.1;
+      ellipse(g, 0, 0, PLATE_RADIUS - 2.5, plateDepth - 2.4);
       g.stroke();
     }
 
@@ -3384,7 +3410,7 @@ const cake = $('#cake');
       return { left, width: right - left, z: RADIUS * Math.cos((a + b) / 2), u: i / (2 * BODY_STRIPS) };
     });
     const cylinderShade = stops(body.createLinearGradient(-RADIUS, 0, RADIUS, 0), [
-      [0, '#010214bf'], [.058, '#080a2f5c'], [.16, '#2136771b'], [.26, '#0002100b'],
+      [0, '#010214bf'], [.058, '#080a2f5c'], [.16, '#12266b1b'], [.26, '#0002100b'],
       [.47, '#02020c00'], [.66, '#03031212'], [.84, '#05051918'], [.94, '#03031551'], [1, '#020110ad']
     ]);
     let projectedPitch = NaN, projectedSpin = NaN;
@@ -3438,10 +3464,10 @@ const cake = $('#cake');
       if (light > .003) {
         ctx.save();
         ctx.clip(bodyShape);
-        ctx.globalAlpha = .60 * light;
+        ctx.globalAlpha = .43 * light;
         ctx.globalCompositeOperation = 'screen';
         stamp(ctx, heat, 5, topY + topDepth * .88, RADIUS * 1.02, -topY * .47);
-        ctx.globalAlpha = .28 * light;
+        ctx.globalAlpha = .19 * light;
         stamp(ctx, softGold, -15, topY + topDepth * .89, RADIUS * .76, -topY * .30);
         ctx.restore();
       }
@@ -3458,11 +3484,8 @@ const cake = $('#cake');
         ctx.save();
         ctx.clip(topLightShape);
         ctx.globalCompositeOperation = 'screen';
-        ctx.globalAlpha = .99 * light;
-        stamp(ctx, heat, 1, topY - 11, RADIUS * 1.24, topDepth * 1.32);
-        stamp(ctx, softGold, 0, candleFoot + 1, RADIUS * .82, topDepth * .78);
-        ctx.globalAlpha = light * .67;
-        stamp(ctx, softGold, 54, candleFoot - 7, 95, 40);
+        ctx.globalAlpha = .51 * light;
+        stamp(ctx, softGold, 0, candleFoot + 4, RADIUS * .81, topDepth * .91);
         ctx.restore();
       }
       ctx.globalAlpha = .55;
@@ -3471,14 +3494,65 @@ const cake = $('#cake');
     }
 
     const flameSprite = makeFlame();
-    const wax = stops(ctx.createLinearGradient(-11, 0, 11, 0), [
-      [0, '#a16b83'], [.2, '#e3b8b1'], [.45, '#fff5d8'], [.59, '#fff9e8'],
-      [.84, '#f0c5c2'], [1, '#bc828f']
-    ]);
-    const litWax = stops(ctx.createLinearGradient(-11, 0, 11, 0), [
+    const wax = makeWax([
+      [0, '#6e3d67'], [.22, '#b87795'], [.48, '#f4c8bd'], [.60, '#f5d9ca'],
+      [.85, '#c588a1'], [1, '#825071']
+    ], '#9b52706e');
+    const litWax = makeWax([
       [0, '#af752d'], [.22, '#f9cf63'], [.47, '#fff6b7'], [.59, '#fff4aa'],
       [.85, '#edc256'], [1, '#c38637']
-    ]);
+    ], '#c18b4060');
+    const wickSprite = makeWick();
+
+    function makeWax(colors, stripe) {
+      const image = layer(40, CANDLE_HEIGHT * 2), g = image.getContext('2d');
+      g.setTransform(2, 0, 0, 2, 20, 0);
+      g.beginPath();
+      g.roundRect(-9.3, 0, 18.6, CANDLE_HEIGHT, 3);
+      g.fillStyle = stops(g.createLinearGradient(-9.3, 0, 9.3, 0), colors);
+      g.fill();
+      g.clip();
+      g.strokeStyle = stripe;
+      g.lineWidth = 5.5;
+      g.beginPath();
+      for (let y = 16; y < CANDLE_HEIGHT; y += 24) {
+        g.moveTo(-10, y + 6);
+        g.quadraticCurveTo(0, y + 7, 10, y - 6);
+      }
+      g.stroke();
+      return image;
+    }
+
+    function makeWick() {
+      const image = layer(48, 64), g = image.getContext('2d');
+      g.setTransform(2, 0, 0, 2, 24, 50);
+      ellipse(g, -.2, 1, 9.5, 3.8);
+      g.fillStyle = '#f4cbbd';
+      g.fill();
+      ellipse(g, -.4, .2, 3.6, 1.5);
+      g.fillStyle = '#885b60';
+      g.fill();
+      g.lineCap = 'round';
+      g.lineWidth = 4;
+      g.strokeStyle = '#1d121a';
+      g.beginPath();
+      g.moveTo(-.7, 1);
+      g.bezierCurveTo(1.5, -5, -1.2, -12, 1.4, -19);
+      g.stroke();
+      g.lineWidth = 1.2;
+      g.strokeStyle = '#aa7766';
+      g.beginPath();
+      g.moveTo(.5, -7);
+      g.quadraticCurveTo(-.4, -14, 2.1, -18.5);
+      g.stroke();
+      g.globalAlpha = .30;
+      stamp(g, softGold, 1.4, -19, 5.4, 5.4);
+      g.globalAlpha = 1;
+      g.fillStyle = '#c48864';
+      ellipse(g, 1.4, -19, 1.6, 1.75);
+      g.fill();
+      return image;
+    }
 
     function makeFlame() {
       const image = layer(100, 192), g = image.getContext('2d');
@@ -3512,55 +3586,7 @@ const cake = $('#cake');
     const wisps = Array.from({ length: SMOKE_COUNT }, () => ({
       x: (rand() - .5) * 13, phase: rand() * TAU, speed: 29 + rand() * 12
     }));
-    let lit = false, flame = 0, smokeAge = 7;
-    const match = { t: -1 };   /* <0 = 没有火柴在飞 */
-
-    /* 一根从右下角划过来的火柴 */
-    function drawMatch(time) {
-      if (match.t < 0) return;
-      const inP = Math.min(1, match.t / 0.58);
-      const outP = match.t > 0.72 ? Math.min(1, (match.t - 0.72) / 0.55) : 0;
-      const e = 1 - Math.pow(1 - inP, 3);
-      const fromX = 330, fromY = candleFoot + 210;
-      const toX = 7, toY = wick - 5;
-      const mx = fromX + (toX - fromX) * e - outP * 150;
-      const my = fromY + (toY - fromY) * e - outP * 190;
-      const fade = 1 - outP;
-
-      /* 火柴杆 */
-      ctx.save();
-      ctx.translate(mx, my);
-      ctx.rotate(-0.66);
-      ctx.globalAlpha = fade;
-      ctx.fillStyle = '#f0dcbd';
-      ctx.beginPath(); ctx.roundRect(6, -3.2, 108, 6.4, 3); ctx.fill();
-      ctx.fillStyle = 'rgba(180,140,100,.55)';
-      ctx.beginPath(); ctx.roundRect(6, 0.6, 108, 2.2, 1); ctx.fill();
-      ctx.fillStyle = '#c0392b';
-      ctx.beginPath(); ctx.roundRect(106, -4.6, 14, 9.2, 4.6); ctx.fill();
-      ctx.restore();
-
-      /* 火柴头的火苗 */
-      if (inP > 0.25) {
-        const k = Math.min(1, (inP - 0.25) / 0.35) * fade;
-        const flick = 1 + Math.sin(time * 22) * 0.12 + Math.sin(time * 31) * 0.07;
-        ctx.save();
-        ctx.globalCompositeOperation = 'screen';
-        ctx.globalAlpha = 0.75 * k;
-        stamp(ctx, heat, mx, my - 4, 34 * k, 40 * k);
-        ctx.restore();
-        ctx.globalAlpha = k;
-        ctx.fillStyle = '#ffd27a';
-        ctx.beginPath();
-        ctx.ellipse(mx, my - 5, 4.4, 9 * flick, -0.28, 0, TAU);
-        ctx.fill();
-        ctx.fillStyle = '#fff6d8';
-        ctx.beginPath();
-        ctx.ellipse(mx, my - 6, 2.2, 4.6 * flick, -0.28, 0, TAU);
-        ctx.fill();
-        ctx.globalAlpha = 1;
-      }
-    }
+    let lit = true, flame = 1, smokeAge = 7;
 
     function drawCandle(time, light) {
       const sway = Math.sin(time * 7.2) * 3.6 + Math.sin(time * 11.3) * 1.5;
@@ -3576,32 +3602,15 @@ const cake = $('#cake');
         ctx.globalAlpha = 1;
       }
 
-      ctx.fillStyle = wax;
-      ctx.beginPath();
-      ctx.roundRect(-9.3, candleTip, 18.6, candleFoot - candleTip, 3);
-      ctx.fill();
-      ctx.fillStyle = litWax;
-      ctx.globalAlpha = light * .89;
-      ctx.fill();
-      ctx.globalAlpha = 1;
-      ellipse(ctx, -.2, candleTip + 1, 9.5, 3.8);
-      ctx.fillStyle = '#fff6e2';
-      ctx.fill();
-      ctx.strokeStyle = '#fff2cf54';
-      ctx.lineWidth = 1.25;
-      ctx.beginPath();
-      ctx.moveTo(-4.5, candleTip + 6);
-      ctx.lineTo(-4.5, candleFoot - 2);
-      ctx.stroke();
-      ctx.strokeStyle = '#544033';
-      ctx.lineWidth = 2.1;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(-.7, candleTip + 1);
-      ctx.quadraticCurveTo(1.6, candleTip - 5, .6, wick - 1);
-      ctx.stroke();
+      const waxHeight = candleFoot - candleTip;
+      ctx.drawImage(wax, -10, candleTip, 20, waxHeight);
+      if (light > .003) {
+        ctx.globalAlpha = light * .89;
+        ctx.drawImage(litWax, -10, candleTip, 20, waxHeight);
+        ctx.globalAlpha = 1;
+      }
+      ctx.drawImage(wickSprite, -12, candleTip - 25, 24, 32);
 
-      drawMatch(time);
       if (flame > .002) {
         const flicker = 1 + .023 * Math.sin(time * 12.8) + .012 * Math.sin(time * 19.7);
         ctx.save();
@@ -3622,7 +3631,7 @@ const cake = $('#cake');
       ctx.globalAlpha = 1;
     }
 
-    let spin = 1.74, velocity = BASE_SPEED, time = 0, previous = null, frameId = null;
+    let spin = 1.74, velocity = BASE_SPEED, time = 0, previous = null, frameId = null, nextPaint = 0;
     let pointer = null, dragged = false, startX = 0, startY = 0, lastX = 0, movedAt = 0;
     let startPitch = PITCH;
 
@@ -3641,7 +3650,11 @@ const cake = $('#cake');
     function frame(timestamp) {
       frameId = null;
       if (document.visibilityState === 'hidden') return;
-      resize();
+      frameId = requestAnimationFrame(frame);
+      // Keep high-refresh screens from doubling the Canvas 2D work.
+      if (previous !== null && timestamp + .75 < nextPaint) return;
+      nextPaint += FRAME_INTERVAL;
+      if (previous === null || nextPaint <= timestamp) nextPaint = timestamp + FRAME_INTERVAL;
       const dt = previous === null ? 0 : clamp((timestamp - previous) / 1000, 0, .05);
       previous = timestamp;
       time += dt;
@@ -3650,50 +3663,31 @@ const cake = $('#cake');
         spin = (spin + velocity * dt) % TAU;
         velocity += (BASE_SPEED - velocity) * (1 - Math.exp(-dt * 1.95));
       }
-      /* 火柴：飞过去 -> 点亮 -> 飞走 */
-      if (match.t >= 0) {
-        match.t += dt;
-        if (match.t >= 0.62 && !lit) {
-          lit = true;
-          smokeAge = 7;
-          try { window.dispatchEvent(new CustomEvent('cake:toggle', { detail: { lit: true } })); } catch (err) {}
-        }
-        if (match.t > 1.45) match.t = -1;
-      }
       flame += (Number(lit) - flame) * (1 - Math.exp(-dt * (lit ? 5 : 9)));
       if (flame < .001 && !lit) flame = 0;
       const light = flame * (.96 + .025 * Math.sin(time * 11.6) + .015 * Math.sin(time * 17.2));
 
-      prepareGeometry();
       ctx.setTransform(canvas.width / WIDTH, 0, 0, canvas.height / VIEW_HEIGHT, 0, 0);
       ctx.drawImage(sky, 0, 0);
       ctx.translate(CENTER, BASELINE);
       drawAirborne(airborne.rear, time);
       ctx.drawImage(plate, -plate.width / 2, PLATE_Y - PLATE_OFFSET);
       if (light > .002) {
-        ctx.globalAlpha = .56 * light;
-        stamp(ctx, softGold, 160, PLATE_Y + plateDepth * .60, 149, 29);
-        ctx.globalAlpha = .24 * light;
-        stamp(ctx, softGold, -204, PLATE_Y + plateDepth * .28, 78, 17);
+        ctx.globalAlpha = .19 * light;
+        stamp(ctx, softGold, 137, PLATE_Y + plateDepth * .58, 92, 16);
         ctx.globalAlpha = 1;
       }
       drawCake(spin, light, time);
       drawCandle(time, light);
       ctx.drawImage(frontOrbit, -CENTER, -BASELINE);
       drawAirborne(airborne.front, time);
-      frameId = requestAnimationFrame(frame);
     }
 
     function toggleCandle() {
-      if (!lit) {
-        if (match.t >= 0) return;          /* 火柴已经在路上了 */
-        match.t = 0;                       /* 划一根火柴 */
-        return;
-      }
-      lit = false;
-      try { window.dispatchEvent(new CustomEvent('cake:toggle', { detail: { lit: false } })); } catch (err) {}
-      smokeAge = 0;
-      canvas.setAttribute('aria-pressed', 'false');
+      try { window.dispatchEvent(new CustomEvent('cake:toggle',{detail:{lit:!lit}})); } catch (err) {}
+      lit = !lit;
+      smokeAge = lit ? 7 : 0;
+      canvas.setAttribute('aria-pressed', String(lit));
       hint.textContent = lit ? 'Drag to spin · Tap to blow out the candle' : 'Drag to spin · Tap to light the candle';
     }
 
@@ -3726,6 +3720,7 @@ const cake = $('#cake');
       velocity = clamp((dragged ? velocity * .32 : 0) + delta / elapsed * .68, -8, 8);
       spin = (spin + delta) % TAU;
       pitch = clamp(startPitch + dy / canvas.clientHeight * 1.3, PITCH - TILT_LIMIT, PITCH + TILT_LIMIT);
+      prepareGeometry();
       dragged = true;
       lastX = e.clientX;
       movedAt = e.timeStamp;
@@ -3755,36 +3750,11 @@ const cake = $('#cake');
 
     document.addEventListener('visibilitychange', syncVisibility);
     window.addEventListener('resize', resize);
-    if (typeof ResizeObserver !== 'undefined') {
-      new ResizeObserver(() => resize()).observe(canvas);
-    }
+    prepareGeometry();
     resize();
     syncVisibility();
   })();
   
-
-/* 蛋糕事件 -> 页面效果 */
-(function wireCake() {
-  let blownOnce = false;
-  window.addEventListener('cake:toggle', (e) => {
-    const r = document.getElementById('cakeCv').getBoundingClientRect();
-    if (e.detail && e.detail.lit) {
-      Sfx.blip(660, .08, 'sine', .05);
-      for (let k = 0; k < 3; k++) setTimeout(() => Sfx.blip(880 + k * 120, .06, 'sine', .03), 90 * k);
-      burst(r.left + r.width / 2, r.top + r.height * 0.32, 26);
-    } else {
-      if (!blownOnce) {
-        blownOnce = true;
-        cake.classList.add('blown');
-        $('#wish').classList.add('on');
-        if (typeof syncAmbient === 'function') setTimeout(syncAmbient, 150);
-      }
-      Sfx.blip(300, .18, 'sawtooth', .05);
-      setTimeout(() => Sfx.chime(), 220);
-      burst(r.left + r.width / 2, r.top + r.height * 0.45, 90);
-    }
-  });
-})();
 
 /* ---------- 信的打字机 ---------- */
 const dBody = $('#dBody');
