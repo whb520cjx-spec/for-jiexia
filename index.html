@@ -798,8 +798,9 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
   font-size:clamp(15px,4.1vw,18px); line-height:2.05; letter-spacing:.045em; color:#5d3a48;
 }
 #letterIn .dialog-foot,#letterIn .letter-ps{font-family:"Kaiti SC","STKaiti",KaiTi,"楷体",serif; color:#8a5567}
-.ch-in.is-hidden{opacity:0; transform:translateY(18px); pointer-events:none;
-  transition:opacity .6s ease .35s, transform .6s ease .35s}
+.ch-in.is-hidden{opacity:0; transform:translateY(34px) scale(.985); pointer-events:none;
+  transition:opacity 1.05s cubic-bezier(.22,.61,.24,1) .55s,
+             transform 1.15s cubic-bezier(.22,.61,.24,1) .55s}
 .ch-in.is-hidden.shown{opacity:1; transform:none; pointer-events:auto}
 
 /* ===== ⑪ 结尾倒计时牌 ===== */
@@ -1574,6 +1575,10 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
   @media (hover: none) { .sa-photo-remove { display: none; } }
   @media (prefers-reduced-motion: reduce) { .sa-corner::before { transition: none; } }
 
+
+/* 去掉相册页上的雾状蒙层（旧版 endpaper 叠加） */
+.sa-page::before{display:none !important}
+.sa-page{background-image:var(--grain,none),var(--gutter),linear-gradient(138deg,#fffaf0,#f2e5d7) !important}
 </style>
 </head>
 <body class="locked">
@@ -1794,7 +1799,7 @@ body.on-day .ruler{background:repeating-linear-gradient(to right,rgba(58,35,64,.
     </div>
     <div class="ch-in center is-hidden" id="letterIn">
       <p class="kicker" id="k7">CHAPTER 07 · 信</p>
-      <h2 class="title night" id="t7" style="font-size:clamp(26px,6vw,50px)">有封信，要点开</h2>
+      <h2 class="title night" id="t7" style="font-family:\"Kaiti SC\",STKaiti,KaiTi,\"楷体\",serif;font-size:clamp(28px,6.4vw,52px);letter-spacing:.06em">有封信，要点开</h2>
       <div class="dialog" style="margin-top:22px">
         <div class="dialog-bar"><span>LETTER.TXT</span><b id="dTitle">TO YOU</b></div>
         <div class="dialog-body" id="dBody" tabindex="0" role="button" aria-label="跳过打字"></div>
